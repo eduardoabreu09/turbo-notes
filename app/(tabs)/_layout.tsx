@@ -1,33 +1,47 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import MaterialComunityIcon from "@expo/vector-icons/MaterialCommunityIcons";
+import MaterialIcon from "@expo/vector-icons/MaterialIcons";
+import { Tabs } from "expo-router";
+import React from "react";
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { HapticTab } from "@/components/haptic-tab";
+import { useThemeColor } from "@/hooks/use-theme-color";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const tabBarActiveTintColor = useThemeColor("tabBarTint");
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor,
         headerShown: false,
         tabBarButton: HapticTab,
-      }}>
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: "Home",
+          tabBarIcon: ({ color }) => (
+            <MaterialIcon size={28} name="home" color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: "Explore",
+          tabBarIcon: ({ color }) => (
+            <MaterialIcon size={28} name="explore" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="search"
+        options={{
+          title: "Search",
+          tabBarIcon: ({ color }) => (
+            <MaterialComunityIcon size={28} name="magnify" color={color} />
+          ),
         }}
       />
     </Tabs>

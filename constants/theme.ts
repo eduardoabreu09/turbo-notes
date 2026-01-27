@@ -6,6 +6,15 @@
 import * as Device from "expo-device";
 import { Platform } from "react-native";
 
+const SPACE_SCALE = 1.33;
+const FONT_SCALE = 1.2;
+
+const isIpad = Device.osName === "iPadOS";
+export const spaceScale = (value: number) =>
+  isIpad ? Math.round(value * SPACE_SCALE) : value;
+const fontScale = (size: number) =>
+  isIpad ? Math.round(size * FONT_SCALE) : size;
+
 const tintColorLight = "#0a7ea4";
 const tintColorDark = "#fff";
 
@@ -27,6 +36,8 @@ export const Colors = {
     tabIconSelected: tintColorDark,
   },
 };
+
+export type FontFamily = keyof typeof Fonts;
 
 export const Fonts = Platform.select({
   ios: {
@@ -53,15 +64,6 @@ export const Fonts = Platform.select({
     mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
   },
 });
-
-const SPACE_SCALE = 1.33;
-const FONT_SCALE = 1.2;
-
-const isIpad = Device.osName === "iPadOS";
-export const spaceScale = (value: number) =>
-  isIpad ? Math.round(value * SPACE_SCALE) : value;
-const fontScale = (size: number) =>
-  isIpad ? Math.round(size * FONT_SCALE) : size;
 
 export const theme = {
   colorRed: "#FF0000",
@@ -106,10 +108,6 @@ export const theme = {
     },
   },
 
-  darkActiveContent: "rgba(255,255,255, 0.3)",
-
-  lightActiveContent: "rgba(0,0,0, 0.1)",
-
   space2: spaceScale(2),
   space4: spaceScale(4),
   space8: spaceScale(8),
@@ -127,19 +125,8 @@ export const theme = {
   fontSize28: fontScale(28),
   fontSize32: fontScale(32),
   fontSize34: fontScale(34),
+  fontSize36: fontScale(36),
   fontSize42: fontScale(42),
-
-  fontFamilyLight: "Montserrat-Light",
-  fontFamilyLightItalic: "Montserrat-LightItalic",
-
-  fontFamily: "Montserrat-Medium",
-  fontFamilyItalic: "Montserrat-MediumItalic",
-
-  fontFamilySemiBold: "Montserrat-SemiBold",
-  fontFamilySemiBoldItalic: "Montserrat-SemiBoldItalic",
-
-  fontFamilyBold: "Montserrat-Bold",
-  fontFamilyBoldItalic: "Montserrat-BoldItalic",
 
   borderRadius4: 4,
   borderRadius6: 6,
@@ -154,5 +141,10 @@ export const theme = {
 
   dropShadow: {
     boxShadow: "0 2px 4px 0 rgba(0, 0, 0, 0.1)",
+  },
+
+  container: {
+    flex: 1,
+    paddingHorizontal: spaceScale(16),
   },
 };

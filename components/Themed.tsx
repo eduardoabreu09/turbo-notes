@@ -1,4 +1,4 @@
-import { theme } from "@/constants/theme";
+import { FontFamily, Fonts, theme } from "@/constants/theme";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import React from "react";
 import { Pressable, PressableProps, Text, TextStyle, View } from "react-native";
@@ -11,9 +11,9 @@ type ThemeProps = {
 };
 
 export type TextProps = ThemeProps & {
-  marginBottom?: number;
   fontSize?: TextStyle["fontSize"];
-  fontWeight?: "light" | "medium" | "semiBold" | "bold";
+  fontWeight?: "light" | "normal" | "semibold" | "bold" | "medium" | 600;
+  fontFamily?: FontFamily;
   italic?: boolean;
   animated?: boolean;
 } & Text["props"];
@@ -22,9 +22,9 @@ export type ViewProps = ThemeProps & View["props"] & { animated?: boolean };
 export function ThemedText(props: TextProps) {
   const {
     style,
-    marginBottom = 0,
     fontSize = theme.fontSize16,
-    fontWeight,
+    fontWeight = "normal",
+    fontFamily = "sans",
     italic,
     animated,
     color: themeColor,
@@ -33,22 +33,13 @@ export function ThemedText(props: TextProps) {
 
   const color = useThemeColor("text");
 
-  const fontFamily = (() => {
-    if (fontWeight === "light") {
-      return italic ? theme.fontFamilyLightItalic : theme.fontFamilyLight;
-    } else if (fontWeight === "semiBold") {
-      return italic ? theme.fontFamilySemiBoldItalic : theme.fontFamilySemiBold;
-    } else if (fontWeight === "bold") {
-      return italic ? theme.fontFamilyBoldItalic : theme.fontFamilyBold;
-    } else {
-      return italic ? theme.fontFamilyItalic : theme.fontFamily;
-    }
-  })();
-
   if (animated) {
     return (
       <Animated.Text
-        style={[{ color, marginBottom, fontSize, fontFamily }, style]}
+        style={[
+          { color, fontSize, fontFamily: Fonts[fontFamily], fontWeight },
+          style,
+        ]}
         {...otherProps}
       />
     );
@@ -56,7 +47,16 @@ export function ThemedText(props: TextProps) {
 
   return (
     <Text
-      style={[{ color, marginBottom, fontSize, fontFamily }, style]}
+      style={[
+        {
+          color,
+          fontSize,
+          fontFamily: Fonts[fontFamily],
+          fontWeight,
+          fontStyle: italic ? "italic" : "normal",
+        },
+        style,
+      ]}
       {...otherProps}
     />
   );

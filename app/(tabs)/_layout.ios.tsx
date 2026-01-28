@@ -11,6 +11,10 @@ export default function TabLayout() {
         <Label>Explore</Label>
         <Icon sf={{ selected: "paperplane.fill", default: "paperplane" }} />
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="add-note">
+        <Label>Add Note</Label>
+        <Icon sf={{ selected: "plus.app.fill", default: "plus.app" }} />
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="search" role="search">
         <Label>Search</Label>
       </NativeTabs.Trigger>

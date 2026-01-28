@@ -1,21 +1,23 @@
-import { ThemedText, ThemedView } from "@/components/Themed";
+import SelectModel from "@/components/SelectModel";
+import { ThemedView } from "@/components/Themed";
 import { theme } from "@/constants/theme";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { ScrollView, StyleSheet } from "react-native";
 
-export default function SearchIndex() {
+export default function AddNote() {
   const backgroundColor = useThemeColor("background");
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor }}>
       <ThemedView style={styles.container}>
         <ThemedView style={styles.titleContainer}></ThemedView>
-        {Array.from({ length: 50 }).map((_, index) => (
+        <SelectModel />
+        {/* {Array.from({ length: 50 }).map((_, index) => (
           <ThemedText key={index}>
             This is some extra filler text to demonstrate scrolling inside the
             Search tab.
           </ThemedText>
-        ))}
+        ))} */}
       </ThemedView>
     </ScrollView>
   );

@@ -4,7 +4,7 @@
  */
 
 import * as Device from "expo-device";
-import { Platform } from "react-native";
+import { Platform, type ViewStyle } from "react-native";
 
 const SPACE_SCALE = 1.33;
 const FONT_SCALE = 1.2;
@@ -106,6 +106,10 @@ export const theme = {
       light: "rgba(0,0,0, 0.3)",
       dark: "rgba(255,255,255, 0.3)",
     },
+    iconDefault: {
+      light: tintColorLight,
+      dark: tintColorLight,
+    },
   },
 
   space2: spaceScale(2),
@@ -146,5 +150,15 @@ export const theme = {
   container: {
     flex: 1,
     paddingHorizontal: spaceScale(16),
-  },
+  } satisfies ViewStyle,
+
+  backdrop: {
+    position: "absolute",
+    height: 10000,
+    width: 10000,
+    top: -5000,
+    left: -5000,
+    backgroundColor: "transparent",
+    zIndex: 5,
+  } satisfies ViewStyle,
 };

@@ -1,3 +1,4 @@
+import AddPhoto from "@/components/AddPhoto";
 import SelectModel from "@/components/SelectModel";
 import { ThemedView } from "@/components/Themed";
 import { theme } from "@/constants/theme";
@@ -11,7 +12,11 @@ export default function AddNote() {
     <ScrollView style={{ flex: 1, backgroundColor }}>
       <ThemedView style={styles.container}>
         <ThemedView style={styles.titleContainer}></ThemedView>
-        <SelectModel />
+        <ThemedView style={styles.buttonsContainer}>
+          <SelectModel />
+          <AddPhoto />
+        </ThemedView>
+
         {/* {Array.from({ length: 50 }).map((_, index) => (
           <ThemedText key={index}>
             This is some extra filler text to demonstrate scrolling inside the
@@ -32,5 +37,9 @@ const styles = StyleSheet.create({
     ...theme.container,
     paddingVertical: theme.space8,
     gap: theme.space16,
+  },
+  buttonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
 });

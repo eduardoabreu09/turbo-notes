@@ -22,6 +22,9 @@ const MAPPING = {
   "chevron.left.forwardslash.chevron.right": "code",
   "chevron.right": "chevron-right",
   brain: "memory",
+  camera: "camera",
+  "camera.viewfinder": "photo-library",
+  plus: "add",
 } as IconMapping;
 
 /**

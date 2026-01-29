@@ -1,10 +1,19 @@
 import { FontFamily, Fonts, theme } from "@/constants/theme";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import React from "react";
-import { Pressable, PressableProps, Text, TextStyle, View } from "react-native";
+import {
+  Pressable,
+  PressableProps,
+  Text,
+  TextInput,
+  TextInputProps,
+  TextStyle,
+  View,
+} from "react-native";
 import Animated from "react-native-reanimated";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
 type ThemeProps = {
   color?: { light: string; dark: string };
@@ -106,6 +115,34 @@ export function ThemedPressable(
           ? style({ pressed: false, hovered: false })
           : style,
       ]}
+      {...otherProps}
+    />
+  );
+}
+
+export function ThemedTextInput(
+  props: TextInputProps & { animated?: boolean } & {
+    ref?: React.Ref<TextInput>;
+  },
+) {
+  const { style, animated, ref, ...otherProps } = props;
+  const backgroundColor = useThemeColor("background");
+  const color = useThemeColor("text");
+
+  if (animated) {
+    return (
+      <AnimatedTextInput
+        ref={ref}
+        style={[{ backgroundColor, color }, style]}
+        {...otherProps}
+      />
+    );
+  }
+
+  return (
+    <TextInput
+      ref={ref}
+      style={[{ backgroundColor, color }, style]}
       {...otherProps}
     />
   );

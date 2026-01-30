@@ -12,9 +12,9 @@ import { NoteFormContext, useNoteForm } from "@/hooks/use-note-form";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { Asset, MAX_PHOTOS } from "@/types/asset";
 import { ModelOptions } from "@/types/model";
-import { LegendList } from "@legendapp/list";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { ScrollView, StyleSheet, TextInput } from "react-native";
+import Carousel from "../Carousel";
 
 export type NoteState = {
   title: string;
@@ -121,18 +121,23 @@ function Header() {
   );
 }
 
-function Carousel() {
+function FormCarousel() {
   const {
     state: { photos },
+    actions: { update },
   } = useNoteForm();
-  return (
-    <LegendList
-      data={photos}
-      horizontal
-      keyExtractor={(item) => item.uri}
-      renderItem={({ item, index }) => <ThemedText>Photo {index}</ThemedText>}
-    />
+
+  const handlePhotoRemoved = useCallback(
+    (asset: Asset) => {
+      update((current) => ({
+        ...current,
+        photos: current.photos.filter((photo) => photo.uri !== asset.uri),
+      }));
+    },
+    [update],
   );
+
+  return <Carousel photos={photos} onPhotoRemoved={handlePhotoRemoved} />;
 }
 
 function GenerateNoteButton() {
@@ -186,7 +191,7 @@ export default function AddNoteForm() {
       <ScrollView style={{ flex: 1, backgroundColor }}>
         <ThemedView style={styles.container}>
           <Header />
-          <Carousel />
+          <FormCarousel />
           <PromptInput />
           <GenerateNoteButton />
         </ThemedView>

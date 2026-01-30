@@ -73,7 +73,7 @@ export default function AddPhoto({ onPhotoAdded }: AddPhotoProps) {
         allowsMultipleSelection: true,
         selectionLimit: MAX_PHOTOS,
         quality: PHOTO_QUALITY,
-        base64: true,
+        // base64: true,
       });
       handleResult(result);
     } catch (error) {
@@ -95,7 +95,7 @@ export default function AddPhoto({ onPhotoAdded }: AddPhotoProps) {
         allowsMultipleSelection: true,
         selectionLimit: MAX_PHOTOS,
         quality: PHOTO_QUALITY,
-        base64: true,
+        // base64: true,
       });
       handleResult(result);
     } catch (error) {

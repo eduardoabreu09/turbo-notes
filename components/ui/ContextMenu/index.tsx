@@ -19,6 +19,8 @@ import {
   ViewStyle,
 } from "react-native";
 import {
+  FadeInUp,
+  FadeOutUp,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -36,6 +38,8 @@ export type ContextMenuItem = {
 export type ContextMenuProps = {
   onSelect?: (item: ContextMenuItem) => void;
   children?: React.ReactNode;
+  options?: ContextMenuItem[];
+  optionsStyle?: StyleProp<ViewStyle>;
 };
 
 type ContextMenuContextProps = {
@@ -55,7 +59,12 @@ function useContextMenu() {
   return context;
 }
 
-function ContextMenu({ children, onSelect = () => {} }: ContextMenuProps) {
+function ContextMenu({
+  children,
+  onSelect = () => {},
+  optionsStyle,
+  options,
+}: ContextMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const handlePress = useCallback(() => {
@@ -77,6 +86,13 @@ function ContextMenu({ children, onSelect = () => {} }: ContextMenuProps) {
       <View style={styles.container}>
         {isOpen && <Pressable style={theme.backdrop} onPress={handlePress} />}
         {children}
+        {isOpen && (
+          <PopUpView propStyle={optionsStyle}>
+            {options?.map((item) => (
+              <Item key={item.label} item={item} />
+            ))}
+          </PopUpView>
+        )}
       </View>
     </ContextMenuContext.Provider>
   );
@@ -126,36 +142,19 @@ type PopUpViewProps = {
 function PopUpView({ children, propStyle }: PopUpViewProps) {
   const borderColor = useThemeColor("border");
   const { isOpen } = useContextMenu();
-  const listProgress = useSharedValue(0);
-
-  useEffect(() => {
-    if (isOpen) {
-      listProgress.value = withTiming(1, { duration: 250 });
-    } else {
-      listProgress.value = withTiming(0, { duration: 140 });
-    }
-  }, [isOpen, listProgress]);
-
-  const listAnimatedStyles = useAnimatedStyle(() => ({
-    opacity: listProgress.value,
-    transform: [
-      {
-        translateY: (1 - listProgress.value) * -20,
-      },
-    ],
-  }));
 
   const pointerEvents = useMemo(() => (isOpen ? "auto" : "none"), [isOpen]);
 
   return (
     <ThemedView
       pointerEvents={pointerEvents}
+      entering={FadeInUp.duration(150).damping(15)}
+      exiting={FadeOutUp.duration(150).damping(15)}
       style={[
         styles.listContainer,
         theme.dropShadow,
         { borderColor: borderColor },
         propStyle,
-        listAnimatedStyles,
       ]}
       animated
     >
@@ -217,4 +216,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export { ContextMenu, Item, PopUpView, Trigger };
+export { ContextMenu, Trigger };

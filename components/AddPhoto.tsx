@@ -26,16 +26,13 @@ export default function AddPhoto() {
       onSelect={(item) => {
         console.log(item);
       }}
+      options={menuOptions}
+      optionsStyle={{ width: 175, left: -50 }}
     >
       <ContextMenu.Trigger>
         <IconSymbol name={"plus"} size={20} color={iconColor} />
         <ThemedText fontSize={theme.fontSize20}>Add Photo</ThemedText>
       </ContextMenu.Trigger>
-      <ContextMenu.PopUpView propStyle={{ width: 175, left: -50 }}>
-        {menuOptions.map((item) => (
-          <ContextMenu.Item key={item.label} item={item} />
-        ))}
-      </ContextMenu.PopUpView>
     </ContextMenu.ContextMenu>
   );
 }

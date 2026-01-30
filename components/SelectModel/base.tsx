@@ -2,35 +2,38 @@ import { theme } from "@/constants/theme";
 import { useNoteForm } from "@/hooks/use-note-form";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { ModelOptions } from "@/types/model";
-import { useMemo } from "react";
-import { ThemedText } from "./Themed";
-import * as ContextMenu from "./ui/ContextMenu";
-import { ContextMenuItem } from "./ui/ContextMenu";
-import { IconSymbol } from "./ui/icon-symbol";
+import { useEffect, useMemo } from "react";
+import { ThemedText } from "../Themed";
+import * as ContextMenu from "../ui/ContextMenu";
+import { IconSymbol } from "../ui/icon-symbol";
 
-export default function SelectModel() {
+export type SelectModelProps = {
+  menuOptions: ContextMenu.ContextMenuItem[];
+};
+
+export default function BaseSelectModel({ menuOptions }: SelectModelProps) {
   const {
     state: { model },
     actions: { update },
   } = useNoteForm();
 
+  useEffect(() => {
+    if (!model) {
+      update((current) => ({
+        ...current,
+        model: menuOptions[0].value as ModelOptions,
+      }));
+    }
+  });
+
   const iconColor = useThemeColor("iconDefault");
 
-  const menuOptions: ContextMenuItem[] = useMemo(
-    () => [
-      {
-        icon: "brain",
-        label: "LLaMA Model",
-        value: "llama",
-      },
-    ],
-    [],
-  );
-
-  const selectedOption = useMemo(
-    () => menuOptions.find((option) => option.value === model),
-    [model, menuOptions],
-  );
+  const selectedOption = useMemo(() => {
+    if (!model) {
+      return menuOptions[0];
+    }
+    return menuOptions.find((option) => option.value === model);
+  }, [model, menuOptions]);
 
   return (
     <ContextMenu.ContextMenu
@@ -40,6 +43,8 @@ export default function SelectModel() {
           model: item.value as ModelOptions,
         }));
       }}
+      options={menuOptions}
+      optionsStyle={{ width: 200 }}
     >
       <ContextMenu.Trigger>
         <IconSymbol
@@ -51,11 +56,6 @@ export default function SelectModel() {
           {selectedOption?.label ?? "Select Model"}
         </ThemedText>
       </ContextMenu.Trigger>
-      <ContextMenu.PopUpView propStyle={{ width: 200 }}>
-        {menuOptions.map((item) => (
-          <ContextMenu.Item key={item.label} item={item} />
-        ))}
-      </ContextMenu.PopUpView>
     </ContextMenu.ContextMenu>
   );
 }

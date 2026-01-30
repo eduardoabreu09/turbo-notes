@@ -10,7 +10,7 @@ import {
   TextStyle,
   View,
 } from "react-native";
-import Animated from "react-native-reanimated";
+import Animated, { EntryOrExitLayoutType } from "react-native-reanimated";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
@@ -19,14 +19,30 @@ type ThemeProps = {
   color?: { light: string; dark: string };
 };
 
+type AnimatedProps = {
+  animated?: boolean;
+  entering?: EntryOrExitLayoutType;
+  exiting?: EntryOrExitLayoutType;
+};
+
 export type TextProps = ThemeProps & {
   fontSize?: TextStyle["fontSize"];
   fontWeight?: "light" | "normal" | "semibold" | "bold" | "medium" | 600;
   fontFamily?: FontFamily;
   italic?: boolean;
-  animated?: boolean;
-} & Text["props"];
-export type ViewProps = ThemeProps & View["props"] & { animated?: boolean };
+} & Text["props"] &
+  AnimatedProps;
+
+export type ViewProps = ThemeProps & View["props"] & AnimatedProps;
+
+export type PressProps = PressableProps & {
+  backgroundColor?: { light: string; dark: string };
+} & AnimatedProps;
+
+export type InputProps = TextInputProps &
+  AnimatedProps & {
+    ref?: React.Ref<TextInput>;
+  };
 
 export function ThemedText(props: TextProps) {
   const {
@@ -120,11 +136,7 @@ export function ThemedPressable(
   );
 }
 
-export function ThemedTextInput(
-  props: TextInputProps & { animated?: boolean } & {
-    ref?: React.Ref<TextInput>;
-  },
-) {
+export function ThemedTextInput(props: InputProps) {
   const { style, animated, ref, ...otherProps } = props;
   const backgroundColor = useThemeColor("background");
   const color = useThemeColor("text");

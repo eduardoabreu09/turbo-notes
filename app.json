@@ -41,7 +41,6 @@
           }
         }
       ],
-      "expo-sqlite",
       [
       "llama.rn",
         {
@@ -49,6 +48,13 @@
           "entitlementsProfile": "production",
           "forceCxx20": true,
           "enableOpenCLAndHexagon": true
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to attach them to notes.",
+          "cameraPermission": "The app accesses your camera to take photos to attach to notes."
         }
       ]
     ],

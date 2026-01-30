@@ -10,14 +10,16 @@ import { theme } from "@/constants/theme";
 import { useAIModel } from "@/hooks/use-ai-model";
 import { NoteFormContext, useNoteForm } from "@/hooks/use-note-form";
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { Asset, MAX_PHOTOS } from "@/types/asset";
 import { ModelOptions } from "@/types/model";
-import { useMemo, useRef, useState } from "react";
+import { LegendList } from "@legendapp/list";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { ScrollView, StyleSheet, TextInput } from "react-native";
 
 export type NoteState = {
   title: string;
   prompt?: string;
-  photos: string[];
+  photos: Asset[];
   model?: ModelOptions;
 };
 
@@ -89,14 +91,47 @@ function PromptInput() {
 }
 
 function Header() {
+  const {
+    state: { photos },
+    actions: { update },
+  } = useNoteForm();
+
+  const handlePhotoAdded = useCallback(
+    (assets: Asset[]) => {
+      const toAdd = [...photos, ...assets];
+      const start = Math.max(toAdd.length - MAX_PHOTOS, 0);
+      const end = start + MAX_PHOTOS;
+
+      update((current) => ({
+        ...current,
+        photos: [...toAdd.slice(start, end)],
+      }));
+    },
+    [update, photos],
+  );
+
   return (
     <ThemedView style={styles.headerContainer}>
       <TitleInput />
       <ThemedView style={styles.buttonsContainer}>
         <SelectModel />
-        <AddPhoto />
+        <AddPhoto onPhotoAdded={handlePhotoAdded} />
       </ThemedView>
     </ThemedView>
+  );
+}
+
+function Carousel() {
+  const {
+    state: { photos },
+  } = useNoteForm();
+  return (
+    <LegendList
+      data={photos}
+      horizontal
+      keyExtractor={(item) => item.uri}
+      renderItem={({ item, index }) => <ThemedText>Photo {index}</ThemedText>}
+    />
   );
 }
 
@@ -151,6 +186,7 @@ export default function AddNoteForm() {
       <ScrollView style={{ flex: 1, backgroundColor }}>
         <ThemedView style={styles.container}>
           <Header />
+          <Carousel />
           <PromptInput />
           <GenerateNoteButton />
         </ThemedView>

@@ -7,6 +7,7 @@ import { Platform } from "react-native";
 export default function Layout() {
   const tabBarBackgroundColor = useThemeColor("background");
 
+  // TODO: add name of the note in Header
   return (
     <Stack>
       <Stack.Screen

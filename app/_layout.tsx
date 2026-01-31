@@ -13,6 +13,7 @@ import { useThemeColor } from "@/hooks/use-theme-color";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { ExtendedStackNavigationOptions } from "expo-router/build/layouts/StackClient";
 import { Platform } from "react-native";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -57,17 +58,19 @@ export default function RootLayout() {
   });
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="modal"
-          options={{
-            ...headerOptions,
-          }}
-        />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <KeyboardProvider>
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="modal"
+            options={{
+              ...headerOptions,
+            }}
+          />
+        </Stack>
+        <StatusBar style="auto" />
+      </ThemeProvider>
+    </KeyboardProvider>
   );
 }

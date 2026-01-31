@@ -12,8 +12,10 @@ import { NoteFormContext, useNoteForm } from "@/hooks/use-note-form";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { Asset, MAX_PHOTOS } from "@/types/asset";
 import { ModelOptions } from "@/types/model";
+import { useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { ScrollView, StyleSheet, TextInput } from "react-native";
+import { StyleSheet, TextInput, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import Carousel from "../Carousel";
 
 export type NoteState = {
@@ -45,14 +47,26 @@ function TitleInput() {
   const {
     state: { title },
     actions: { update },
-    meta: { titleRef },
+    meta: { titleRef, promptRef },
   } = useNoteForm();
+  useFocusEffect(
+    useCallback(() => {
+      titleRef?.current?.focus();
+      return () => {
+        console.log("This route is now unfocused.");
+      };
+    }, []),
+  );
 
   return (
     <ThemedTextInput
       ref={titleRef}
       style={{ fontSize: theme.fontSize24, fontWeight: "600" }}
       value={title}
+      submitBehavior="blurAndSubmit"
+      onSubmitEditing={() => {
+        promptRef?.current?.focus();
+      }}
       onChangeText={(text) => {
         update((current) => ({ ...current, title: text }));
       }}
@@ -70,23 +84,21 @@ function PromptInput() {
   const borderColor = useThemeColor("border");
 
   return (
-    <ThemedTextInput
-      ref={promptRef}
-      multiline
-      numberOfLines={3}
-      style={{
-        fontSize: theme.fontSize24,
-        fontWeight: "600",
-        borderColor,
-        borderWidth: 1,
-        borderRadius: 8,
-        padding: 8,
-      }}
-      value={prompt}
-      onChangeText={(text) => {
-        update((current) => ({ ...current, prompt: text }));
-      }}
-    />
+    <View style={{ gap: theme.space8 }}>
+      <ThemedText fontSize={theme.fontSize16} fontWeight={600}>
+        Prompt:
+      </ThemedText>
+      <ThemedTextInput
+        ref={promptRef}
+        style={[styles.promptInput, { borderColor }]}
+        value={prompt}
+        placeholder="Say something to guide the model..."
+        submitBehavior="blurAndSubmit"
+        onChangeText={(text) => {
+          update((current) => ({ ...current, prompt: text }));
+        }}
+      />
+    </View>
   );
 }
 
@@ -188,14 +200,14 @@ export default function AddNoteForm() {
 
   return (
     <NoteFormContext.Provider value={value}>
-      <ScrollView style={{ flex: 1, backgroundColor }}>
+      <KeyboardAwareScrollView style={{ flex: 1, backgroundColor }}>
         <ThemedView style={styles.container}>
           <Header />
           <FormCarousel />
           <PromptInput />
           <GenerateNoteButton />
         </ThemedView>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </NoteFormContext.Provider>
   );
 }
@@ -216,5 +228,12 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
+  },
+  promptInput: {
+    fontSize: theme.fontSize18,
+    fontWeight: "600",
+    borderWidth: 1,
+    borderRadius: theme.borderRadius10,
+    padding: 8,
   },
 });

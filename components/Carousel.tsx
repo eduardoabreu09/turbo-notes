@@ -1,9 +1,10 @@
 import { theme } from "@/constants/theme";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { Asset } from "@/types/asset";
+import { LegendList } from "@legendapp/list";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
-import { Dimensions, FlatList, StyleSheet, View } from "react-native";
+import { Dimensions, StyleSheet, View } from "react-native";
 import Animated, { SlideInRight, SlideOutRight } from "react-native-reanimated";
 import { ThemedPressable, ThemedText, ThemedView } from "./Themed";
 
@@ -25,7 +26,7 @@ function ListEmptyComponent() {
       style={[
         style.container,
         {
-          height: defaultHeight / 2,
+          height: defaultHeight,
           width: defaultWidth,
           borderRadius: theme.borderRadius20,
           padding: theme.space16,
@@ -80,7 +81,7 @@ export default function Carousel({ photos, onPhotoRemoved }: CarouselProps) {
 
   return (
     <View style={style.container}>
-      <FlatList
+      <LegendList
         data={photos}
         snapToInterval={defaultWidth + theme.space12}
         contentContainerStyle={{
@@ -93,6 +94,7 @@ export default function Carousel({ photos, onPhotoRemoved }: CarouselProps) {
         renderItem={renderItem}
         ListEmptyComponent={ListEmptyComponent}
         showsHorizontalScrollIndicator={false}
+        maintainVisibleContentPosition
       />
     </View>
   );

@@ -1,17 +1,17 @@
 import { theme } from "@/constants/theme";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { Asset } from "@/types/asset";
-import { LegendList } from "@legendapp/list";
+import { FlashList } from "@shopify/flash-list";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
-import { Dimensions, StyleSheet, View } from "react-native";
-import Animated, { SlideInRight, SlideOutRight } from "react-native-reanimated";
+import { StyleSheet, useWindowDimensions, View } from "react-native";
+import Animated, {
+  FadeIn,
+  FadeOut,
+  SlideInRight,
+  SlideOutRight,
+} from "react-native-reanimated";
 import { ThemedPressable, ThemedText, ThemedView } from "./Themed";
-
-const width = Dimensions.get("screen").width;
-const height = Dimensions.get("screen").height;
-const defaultWidth = 0.8 * width;
-const defaultHeight = 0.4 * height;
 
 export type CarouselProps = {
   photos: Asset[];
@@ -19,25 +19,30 @@ export type CarouselProps = {
 };
 
 function ListEmptyComponent() {
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const secondaryColor = useThemeColor("backgroundSecondary");
 
   return (
     <ThemedView
       style={[
-        style.container,
+        styles.container,
         {
-          height: defaultHeight,
-          width: defaultWidth,
+          height: screenHeight * 0.4,
+          width: screenWidth * 0.8,
           borderRadius: theme.borderRadius20,
           padding: theme.space16,
         },
         { backgroundColor: secondaryColor },
       ]}
+      animated
+      entering={FadeIn.duration(500)}
+      exiting={FadeOut.duration(300)}
     >
       <ThemedText
         fontFamily="mono"
         fontWeight="bold"
         fontSize={theme.fontSize28}
+        style={{ textAlign: "center" }}
       >
         Add photos to see them here!
       </ThemedText>
@@ -46,28 +51,23 @@ function ListEmptyComponent() {
 }
 
 export default function Carousel({ photos, onPhotoRemoved }: CarouselProps) {
+  const { width: screenWidth } = useWindowDimensions();
+
   const renderItem = ({ item, index }: { item: Asset; index: number }) => {
     return (
       <Animated.View
         entering={SlideInRight.duration(150).damping(10)}
         exiting={SlideOutRight.duration(300).damping(10)}
-        style={{
-          position: "relative",
-          height: defaultHeight,
-          width: defaultWidth,
-        }}
+        style={[styles.itemContainer, { width: screenWidth * 0.8 }]}
       >
         <Image
-          style={{
-            flex: 1,
-            borderRadius: theme.borderRadius20,
-          }}
+          style={styles.image}
           source={{ uri: item.uri }}
           contentFit="fill"
         />
         <ThemedPressable
           hitSlop={20}
-          style={style.pressableContainer}
+          style={styles.pressableContainer}
           onPress={() => {
             onPhotoRemoved?.(item);
             Haptics.impactAsync();
@@ -80,27 +80,28 @@ export default function Carousel({ photos, onPhotoRemoved }: CarouselProps) {
   };
 
   return (
-    <View style={style.container}>
-      <LegendList
+    <View style={styles.container}>
+      <FlashList
+        style={{ flex: 1 }}
         data={photos}
-        snapToInterval={defaultWidth + theme.space12}
-        contentContainerStyle={{
-          gap: theme.space12,
-          paddingHorizontal: theme.space24,
-        }}
-        decelerationRate="fast"
-        horizontal
         keyExtractor={(item) => item.uri}
+        horizontal
+        viewabilityConfig={{
+          itemVisiblePercentThreshold: 50,
+          minimumViewTime: 0,
+        }}
+        showsHorizontalScrollIndicator={false}
+        snapToInterval={screenWidth * 0.8 - 10}
+        decelerationRate="fast"
+        scrollEventThrottle={16}
         renderItem={renderItem}
         ListEmptyComponent={ListEmptyComponent}
-        showsHorizontalScrollIndicator={false}
-        maintainVisibleContentPosition
       />
     </View>
   );
 }
 
-const style = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
@@ -117,5 +118,14 @@ const style = StyleSheet.create({
     borderRadius: "100%",
     justifyContent: "center",
     alignItems: "center",
+  },
+  itemContainer: {
+    marginHorizontal: 5,
+    borderRadius: 20,
+    overflow: "hidden",
+  },
+  image: {
+    flex: 1,
+    borderRadius: theme.borderRadius20,
   },
 });

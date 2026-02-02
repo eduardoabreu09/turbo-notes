@@ -1,13 +1,12 @@
-import { theme } from "@/constants/theme";
-import { useThemeColor } from "@/hooks/use-theme-color";
 import { Asset, MAX_PHOTOS, PHOTO_QUALITY } from "@/types/asset";
 import { toAsset } from "@/utils/assets-map";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import * as ImagePicker from "expo-image-picker";
+import { useRef } from "react";
 import { Alert, Linking } from "react-native";
-import { ThemedText } from "./Themed";
 import * as ContextMenu from "./ui/ContextMenu";
 import { ContextMenuItem } from "./ui/ContextMenu";
-import { IconSymbol } from "./ui/icon-symbol";
+import Modal from "./ui/Modal";
 
 export type AddPhotoProps = {
   onPhotoAdded?: (assets: Asset[]) => void;
@@ -27,7 +26,7 @@ const menuOptions: ContextMenuItem[] = [
 ];
 
 export default function AddPhoto({ onPhotoAdded }: AddPhotoProps) {
-  const iconColor = useThemeColor("iconDefault");
+  const bottomModalRef = useRef<BottomSheetModal | null>(null);
 
   const promptToOpenSettings = (message: string) => {
     Alert.alert("Permission required", message, [
@@ -52,11 +51,11 @@ export default function AddPhoto({ onPhotoAdded }: AddPhotoProps) {
 
   const handleResult = (result: ImagePicker.ImagePickerResult) => {
     if (result.canceled) {
-      alert("You did not select any image.");
       return;
     }
     console.log(result.assets);
     onPhotoAdded?.(toAsset(result.assets));
+    bottomModalRef.current?.dismiss();
   };
 
   const pickImageFromLibrary = async () => {
@@ -112,15 +111,13 @@ export default function AddPhoto({ onPhotoAdded }: AddPhotoProps) {
   };
 
   return (
-    <ContextMenu.ContextMenu
-      onSelect={handleSelect}
-      options={menuOptions}
-      optionsStyle={{ width: 175, left: -50 }}
-    >
-      <ContextMenu.Trigger>
-        <IconSymbol name={"plus"} size={20} color={iconColor} />
-        <ThemedText fontSize={theme.fontSize20}>Add Photo</ThemedText>
-      </ContextMenu.Trigger>
-    </ContextMenu.ContextMenu>
+    <Modal.Provider bottomModalRef={bottomModalRef}>
+      <Modal.Trigger>
+        <Modal.TriggerTitle title="Add Photo" />
+        <Modal.Content>
+          <Modal.Selection options={menuOptions} onSelect={handleSelect} />
+        </Modal.Content>
+      </Modal.Trigger>
+    </Modal.Provider>
   );
 }

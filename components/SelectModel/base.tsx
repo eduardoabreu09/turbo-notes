@@ -1,14 +1,12 @@
-import { theme } from "@/constants/theme";
 import { useNoteForm } from "@/hooks/use-note-form";
-import { useThemeColor } from "@/hooks/use-theme-color";
+import { SelectionModalOption } from "@/store/selection-modal-store";
 import { ModelOptions } from "@/types/model";
-import { useEffect, useMemo } from "react";
-import { ThemedText } from "../Themed";
-import * as ContextMenu from "../ui/ContextMenu";
-import { IconSymbol } from "../ui/icon-symbol";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { useEffect, useMemo, useRef } from "react";
+import Modal from "../ui/Modal";
 
 export type SelectModelProps = {
-  menuOptions: ContextMenu.ContextMenuItem[];
+  menuOptions: SelectionModalOption[];
 };
 
 export default function BaseSelectModel({ menuOptions }: SelectModelProps) {
@@ -16,6 +14,7 @@ export default function BaseSelectModel({ menuOptions }: SelectModelProps) {
     state: { model },
     actions: { update },
   } = useNoteForm();
+  const bottomModalRef = useRef<BottomSheetModal | null>(null);
 
   useEffect(() => {
     if (!model) {
@@ -26,36 +25,33 @@ export default function BaseSelectModel({ menuOptions }: SelectModelProps) {
     }
   });
 
-  const iconColor = useThemeColor("iconDefault");
-
   const selectedOption = useMemo(() => {
     if (!model) {
       return menuOptions[0];
     }
-    return menuOptions.find((option) => option.value === model);
-  }, [model, menuOptions]);
+    const find = menuOptions.find((option) => option.value === model);
+    return find || menuOptions[0];
+  }, [menuOptions, model]);
+
+  const handleSelect = (option: SelectionModalOption) => {
+    update((current) => ({
+      ...current,
+      model: option.value as ModelOptions,
+    }));
+    bottomModalRef.current?.dismiss();
+  };
 
   return (
-    <ContextMenu.ContextMenu
-      onSelect={(item) => {
-        update((current) => ({
-          ...current,
-          model: item.value as ModelOptions,
-        }));
-      }}
-      options={menuOptions}
-      optionsStyle={{ width: 200 }}
-    >
-      <ContextMenu.Trigger>
-        <IconSymbol
-          name={selectedOption?.icon ?? "brain"}
-          size={20}
-          color={iconColor}
+    <Modal.Provider bottomModalRef={bottomModalRef}>
+      <Modal.Trigger>
+        <Modal.TriggerTitle
+          title={selectedOption.label}
+          icon={selectedOption.icon}
         />
-        <ThemedText fontSize={theme.fontSize20}>
-          {selectedOption?.label ?? "Select Model"}
-        </ThemedText>
-      </ContextMenu.Trigger>
-    </ContextMenu.ContextMenu>
+        <Modal.Content>
+          <Modal.Selection options={menuOptions} onSelect={handleSelect} />
+        </Modal.Content>
+      </Modal.Trigger>
+    </Modal.Provider>
   );
 }

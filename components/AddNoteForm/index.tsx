@@ -13,7 +13,7 @@ import { useThemeColor } from "@/hooks/use-theme-color";
 import { Asset, MAX_PHOTOS } from "@/types/asset";
 import { ModelOptions } from "@/types/model";
 import { useFocusEffect } from "expo-router";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import Carousel from "../Carousel";
@@ -32,18 +32,22 @@ export const InitialNoteState: NoteState = {
   model: undefined,
 };
 
-export type NoteFormProps = {
-  state: NoteState;
-  actions: {
-    update: (updater: (current: NoteState) => NoteState) => void;
-  };
-  meta: {
-    titleRef?: React.RefObject<TextInput | null>;
-    promptRef?: React.RefObject<TextInput | null>;
-  };
+export type NoteActions = {
+  update: (updater: (current: NoteState) => NoteState) => void;
 };
 
+export type NoteMeta = {
+  titleRef?: React.RefObject<TextInput | null>;
+  promptRef?: React.RefObject<TextInput | null>;
+};
+
+export type NoteFormProps = {
+  state: NoteState;
+  actions: NoteActions;
+  meta: NoteMeta;
+};
 function TitleInput() {
+  const [hasFocused, setHasFocused] = useState(false);
   const {
     state: { title },
     actions: { update },
@@ -51,11 +55,11 @@ function TitleInput() {
   } = useNoteForm();
   useFocusEffect(
     useCallback(() => {
-      titleRef?.current?.focus();
-      return () => {
-        console.log("This route is now unfocused.");
-      };
-    }, []),
+      if (!hasFocused) {
+        setHasFocused(true);
+        titleRef?.current?.focus();
+      }
+    }, [hasFocused, titleRef]),
   );
 
   return (
@@ -64,9 +68,6 @@ function TitleInput() {
       style={{ fontSize: theme.fontSize24, fontWeight: "600" }}
       value={title}
       submitBehavior="blurAndSubmit"
-      onSubmitEditing={() => {
-        promptRef?.current?.focus();
-      }}
       onChangeText={(text) => {
         update((current) => ({ ...current, title: text }));
       }}
@@ -108,19 +109,16 @@ function Header() {
     actions: { update },
   } = useNoteForm();
 
-  const handlePhotoAdded = useCallback(
-    (assets: Asset[]) => {
-      const toAdd = [...photos, ...assets];
-      const start = Math.max(toAdd.length - MAX_PHOTOS, 0);
-      const end = start + MAX_PHOTOS;
+  const handlePhotoAdded = (assets: Asset[]) => {
+    const toAdd = [...photos, ...assets];
+    const start = Math.max(toAdd.length - MAX_PHOTOS, 0);
+    const end = start + MAX_PHOTOS;
 
-      update((current) => ({
-        ...current,
-        photos: [...toAdd.slice(start, end)],
-      }));
-    },
-    [update, photos],
-  );
+    update((current) => ({
+      ...current,
+      photos: [...toAdd.slice(start, end)],
+    }));
+  };
 
   return (
     <ThemedView style={styles.headerContainer}>
@@ -139,15 +137,12 @@ function FormCarousel() {
     actions: { update },
   } = useNoteForm();
 
-  const handlePhotoRemoved = useCallback(
-    (asset: Asset) => {
-      update((current) => ({
-        ...current,
-        photos: current.photos.filter((photo) => photo.uri !== asset.uri),
-      }));
-    },
-    [update],
-  );
+  const handlePhotoRemoved = (asset: Asset) => {
+    update((current) => ({
+      ...current,
+      photos: current.photos.filter((photo) => photo.uri !== asset.uri),
+    }));
+  };
 
   return <Carousel photos={photos} onPhotoRemoved={handlePhotoRemoved} />;
 }
@@ -156,6 +151,7 @@ function GenerateNoteButton() {
   const {
     state: { model, prompt },
   } = useNoteForm();
+
   const { generateNote, outputText, cancelGeneration } = useAIModel();
   return (
     <>
@@ -189,18 +185,20 @@ export default function AddNoteForm() {
   const titleRef = useRef<TextInput>(null);
   const promptRef = useRef<TextInput>(null);
 
-  const value = useMemo(
-    () => ({
-      state,
-      actions: { update: setState },
-      meta: { titleRef, promptRef },
-    }),
-    [state, setState, titleRef, promptRef],
-  );
-
   return (
-    <NoteFormContext.Provider value={value}>
-      <KeyboardAwareScrollView style={{ flex: 1, backgroundColor }}>
+    <NoteFormContext.Provider
+      value={{
+        state,
+        actions: { update: setState },
+        meta: { titleRef, promptRef },
+      }}
+    >
+      <KeyboardAwareScrollView
+        style={{ flex: 1, backgroundColor }}
+        disableScrollOnKeyboardHide
+        keyboardDismissMode="on-drag"
+        bottomOffset={20}
+      >
         <ThemedView style={styles.container}>
           <Header />
           <FormCarousel />

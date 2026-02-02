@@ -36,7 +36,7 @@ export type TextProps = ThemeProps & {
 export type ViewProps = ThemeProps & View["props"] & AnimatedProps;
 
 export type PressProps = PressableProps & {
-  backgroundColor?: { light: string; dark: string };
+  backgroundColor?: string;
 } & AnimatedProps;
 
 export type InputProps = TextInputProps &
@@ -100,14 +100,9 @@ export function ThemedView(props: ViewProps) {
   return <View style={[{ backgroundColor }, style]} {...otherProps} />;
 }
 
-export function ThemedPressable(
-  props: PressableProps & {
-    backgroundColor?: { light: string; dark: string };
-    animated?: boolean;
-  },
-) {
-  const { style, animated, ...otherProps } = props;
-  const backgroundColor = useThemeColor("background");
+export function ThemedPressable(props: PressProps) {
+  const { style, animated, backgroundColor, ...otherProps } = props;
+  const defaultBackgroundColor = useThemeColor("background");
 
   if (animated) {
     return (
@@ -126,7 +121,7 @@ export function ThemedPressable(
   return (
     <Pressable
       style={[
-        { backgroundColor },
+        { backgroundColor: backgroundColor || defaultBackgroundColor },
         typeof style === "function"
           ? style({ pressed: false, hovered: false })
           : style,

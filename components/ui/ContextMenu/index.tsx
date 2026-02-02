@@ -2,15 +2,7 @@ import { ThemedPressable, ThemedText, ThemedView } from "@/components/Themed";
 import { theme } from "@/constants/theme";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import * as Haptics from "expo-haptics";
-import React, {
-  ComponentProps,
-  createContext,
-  use,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { ComponentProps, createContext, use, useState } from "react";
 import {
   Pressable,
   StyleProp,
@@ -18,13 +10,7 @@ import {
   View,
   ViewStyle,
 } from "react-native";
-import {
-  FadeInUp,
-  FadeOutUp,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
+import { FadeInUp, FadeOutUp, useSharedValue } from "react-native-reanimated";
 import { IconSymbol } from "../icon-symbol";
 
 type IconName = ComponentProps<typeof IconSymbol>["name"];
@@ -67,22 +53,13 @@ function ContextMenu({
 }: ContextMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const handlePress = useCallback(() => {
+  const handlePress = () => {
     setIsOpen(false);
     Haptics.selectionAsync();
-  }, []);
-
-  const value = useMemo(
-    () => ({
-      isOpen,
-      setIsOpen,
-      onSelect,
-    }),
-    [isOpen, setIsOpen, onSelect],
-  );
+  };
 
   return (
-    <ContextMenuContext.Provider value={value}>
+    <ContextMenuContext.Provider value={{ isOpen, setIsOpen, onSelect }}>
       <View style={styles.container}>
         {isOpen && <Pressable style={theme.backdrop} onPress={handlePress} />}
         {children}
@@ -106,29 +83,13 @@ function Trigger({ children }: TriggerProps) {
   const opacity = useSharedValue(1);
   const { isOpen, setIsOpen } = useContextMenu();
 
-  const animatedStyles = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-  }));
-
-  useEffect(() => {
-    if (isOpen) {
-      opacity.value = withTiming(0.3, { duration: 250 });
-    } else {
-      opacity.value = withTiming(1, { duration: 250 });
-    }
-  }, [isOpen, opacity]);
-
-  const handlePress = useCallback(() => {
+  const handlePress = () => {
     setIsOpen(!isOpen);
     Haptics.selectionAsync();
-  }, [isOpen, setIsOpen]);
+  };
 
   return (
-    <ThemedPressable
-      style={[styles.titleContainer, animatedStyles]}
-      onPress={handlePress}
-      animated
-    >
+    <ThemedPressable style={[styles.titleContainer]} onPress={handlePress}>
       {children}
     </ThemedPressable>
   );
@@ -143,7 +104,7 @@ function PopUpView({ children, propStyle }: PopUpViewProps) {
   const borderColor = useThemeColor("border");
   const { isOpen } = useContextMenu();
 
-  const pointerEvents = useMemo(() => (isOpen ? "auto" : "none"), [isOpen]);
+  const pointerEvents = isOpen ? "auto" : "none";
 
   return (
     <ThemedView
@@ -167,14 +128,11 @@ function Item({ item }: { item: ContextMenuItem }) {
   const iconColor = useThemeColor("iconDefault");
   const { onSelect, setIsOpen } = useContextMenu();
 
-  const handleSelect = useCallback(
-    (item: ContextMenuItem) => {
-      onSelect?.(item);
-      setIsOpen(false);
-      Haptics.selectionAsync();
-    },
-    [onSelect, setIsOpen],
-  );
+  const handleSelect = (item: ContextMenuItem) => {
+    onSelect?.(item);
+    setIsOpen(false);
+    Haptics.selectionAsync();
+  };
 
   return (
     <ThemedPressable

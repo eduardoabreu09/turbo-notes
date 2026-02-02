@@ -1,11 +1,11 @@
+import { SelectionModalOption } from "@/store/selection-modal-store";
 import { apple } from "@react-native-ai/apple";
 import { useMemo } from "react";
-import * as ContextMenu from "../ui/ContextMenu";
 import BaseSelectModel from "./base";
 
 export default function SelectModel() {
-  const menuOptions: ContextMenu.ContextMenuItem[] = useMemo(() => {
-    let results: ContextMenu.ContextMenuItem[] = [];
+  const menuOptions = useMemo(() => {
+    let results: SelectionModalOption[] = [];
     if (apple.isAvailable()) {
       results.push({
         icon: "apple.intelligence",

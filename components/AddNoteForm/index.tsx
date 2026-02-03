@@ -16,7 +16,9 @@ import { useFocusEffect } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+import { FadeIn, FadeOut } from "react-native-reanimated";
 import Carousel from "../Carousel";
+import { IconSymbol } from "../ui/icon-symbol";
 
 export type NoteState = {
   title: string;
@@ -77,28 +79,74 @@ function TitleInput() {
 
 function PromptInput() {
   const {
-    state: { prompt },
+    state: { prompt, model },
     actions: { update },
     meta: { promptRef },
   } = useNoteForm();
+  const { generateNote, outputText, cancelGeneration, isLoading } =
+    useAIModel();
 
   const borderColor = useThemeColor("border");
+  const iconColor = useThemeColor("iconDefault");
 
   return (
     <View style={{ gap: theme.space8 }}>
       <ThemedText fontSize={theme.fontSize16} fontWeight={600}>
         Prompt:
       </ThemedText>
-      <ThemedTextInput
-        ref={promptRef}
-        style={[styles.promptInput, { borderColor }]}
-        value={prompt}
-        placeholder="Say something to guide the model..."
-        submitBehavior="blurAndSubmit"
-        onChangeText={(text) => {
-          update((current) => ({ ...current, prompt: text }));
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: theme.space2,
         }}
-      />
+      >
+        <ThemedTextInput
+          ref={promptRef}
+          style={[styles.promptInput, { borderColor }]}
+          value={prompt}
+          placeholder="Say something to guide the model..."
+          submitBehavior="blurAndSubmit"
+          onChangeText={(text) => {
+            update((current) => ({ ...current, prompt: text }));
+          }}
+        />
+        {isLoading && (
+          <ThemedPressable
+            style={{
+              backgroundColor: "red",
+              padding: 8,
+              borderRadius: "100%",
+            }}
+            onPress={() => {
+              cancelGeneration();
+            }}
+            animated
+            entering={FadeIn.duration(300)}
+            exiting={FadeOut.duration(300)}
+          >
+            <IconSymbol name="stop" size={theme.fontSize28} color="white" />
+          </ThemedPressable>
+        )}
+        {!isLoading && (
+          <ThemedPressable
+            style={{
+              backgroundColor: iconColor,
+              padding: 8,
+              borderRadius: "100%",
+            }}
+            onPress={() => {
+              generateNote(model ?? "apple", prompt ?? "alooo");
+            }}
+            animated
+            entering={FadeIn.duration(300)}
+            exiting={FadeOut.duration(300)}
+          >
+            <IconSymbol name="play" size={theme.fontSize28} color="white" />
+          </ThemedPressable>
+        )}
+      </View>
+      <ThemedText fontSize={theme.fontSize14}>{outputText}</ThemedText>
     </View>
   );
 }
@@ -147,37 +195,6 @@ function FormCarousel() {
   return <Carousel photos={photos} onPhotoRemoved={handlePhotoRemoved} />;
 }
 
-function GenerateNoteButton() {
-  const {
-    state: { model, prompt },
-  } = useNoteForm();
-
-  const { generateNote, outputText, cancelGeneration } = useAIModel();
-  return (
-    <>
-      <ThemedPressable
-        onPress={() => {
-          generateNote(model ?? "apple", prompt ?? "alooo");
-        }}
-      >
-        <ThemedText fontSize={theme.fontSize18} fontWeight={600}>
-          Send
-        </ThemedText>
-      </ThemedPressable>
-      <ThemedPressable
-        onPress={() => {
-          cancelGeneration();
-        }}
-      >
-        <ThemedText fontSize={theme.fontSize18} fontWeight={600}>
-          Cancel
-        </ThemedText>
-      </ThemedPressable>
-      <ThemedText fontSize={theme.fontSize14}>{outputText}</ThemedText>
-    </>
-  );
-}
-
 export default function AddNoteForm() {
   const [state, setState] = useState<NoteState>(InitialNoteState);
   const backgroundColor = useThemeColor("background");
@@ -203,7 +220,6 @@ export default function AddNoteForm() {
           <Header />
           <FormCarousel />
           <PromptInput />
-          <GenerateNoteButton />
         </ThemedView>
       </KeyboardAwareScrollView>
     </NoteFormContext.Provider>
@@ -229,9 +245,11 @@ const styles = StyleSheet.create({
   },
   promptInput: {
     fontSize: theme.fontSize18,
+    flex: 1,
     fontWeight: "600",
     borderWidth: 1,
     borderRadius: theme.borderRadius10,
-    padding: 8,
+    paddingHorizontal: theme.space8,
+    paddingVertical: theme.space12,
   },
 });

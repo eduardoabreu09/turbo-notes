@@ -25,6 +25,8 @@ const MAPPING = {
   camera: "camera",
   "camera.viewfinder": "photo-library",
   plus: "add",
+  play: "send",
+  stop: "cancel",
 } as IconMapping;
 
 /**

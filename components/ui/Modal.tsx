@@ -70,9 +70,10 @@ const Modal = ({ children, bottomModalRef }: ModalProps) => {
 
 type TriggerProps = {
   children: ReactNode;
+  onPress?: () => void;
 };
 
-function Trigger({ children }: TriggerProps) {
+function Trigger({ children, onPress }: TriggerProps) {
   const {
     state,
     actions: { update },
@@ -81,6 +82,7 @@ function Trigger({ children }: TriggerProps) {
   const handlePress = () => {
     update((current) => ({ ...current, open: !state.open }));
     Haptics.selectionAsync();
+    onPress?.();
   };
 
   return (

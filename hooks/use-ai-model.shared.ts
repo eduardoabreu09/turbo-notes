@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 
 export const SYSTEM_PROMPT =
-  "You are an AI assistant that helps users write notes based on images they provide. Analyze the images and generate a concise and informative note. Always generate text in a markdown format.";
+  "You are an AI assistant that helps users write notes. Provide clear, concise, and relevant information based on the user's input. Write in a engaging and informative style in markdown format. Always write the note in markdown format.";
 
 export type AIModelSharedState = {
   isLoading: boolean;

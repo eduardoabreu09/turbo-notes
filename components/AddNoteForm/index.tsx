@@ -12,13 +12,21 @@ import { NoteFormContext, useNoteForm } from "@/hooks/use-note-form";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { Asset, MAX_PHOTOS } from "@/types/asset";
 import { ModelOptions } from "@/types/model";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useFocusEffect } from "expo-router";
-import { useCallback, useRef, useState } from "react";
-import { StyleSheet, TextInput, View } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import { FadeIn, FadeOut } from "react-native-reanimated";
+import Markdown from "react-native-markdown-display";
 import Carousel from "../Carousel";
 import { IconSymbol } from "../ui/icon-symbol";
+import Modal from "../ui/Modal";
 
 export type NoteState = {
   title: string;
@@ -53,7 +61,7 @@ function TitleInput() {
   const {
     state: { title },
     actions: { update },
-    meta: { titleRef, promptRef },
+    meta: { titleRef },
   } = useNoteForm();
   useFocusEffect(
     useCallback(() => {
@@ -85,12 +93,24 @@ function PromptInput() {
   } = useNoteForm();
   const { generateNote, outputText, cancelGeneration, isLoading } =
     useAIModel();
+  const { height } = useWindowDimensions();
+  const bottomModalRef = useRef<BottomSheetModal | null>(null);
+  const scrollViewRef = useRef<ScrollView | null>(null);
+  const scrollDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const borderColor = useThemeColor("border");
   const iconColor = useThemeColor("iconDefault");
 
+  useEffect(() => {
+    return () => {
+      if (scrollDebounceRef.current) {
+        clearTimeout(scrollDebounceRef.current);
+      }
+    };
+  }, []);
+
   return (
-    <View style={{ gap: theme.space8 }}>
+    <View>
       <ThemedText fontSize={theme.fontSize16} fontWeight={600}>
         Prompt:
       </ThemedText>
@@ -111,42 +131,80 @@ function PromptInput() {
             update((current) => ({ ...current, prompt: text }));
           }}
         />
-        {isLoading && (
-          <ThemedPressable
-            style={{
-              backgroundColor: "red",
-              padding: 8,
-              borderRadius: "100%",
-            }}
+        <Modal.Provider bottomModalRef={bottomModalRef}>
+          <Modal.Trigger
+            // TODO: fix Lint error
             onPress={() => {
-              cancelGeneration();
+              generateNote(model, prompt);
             }}
-            animated
-            entering={FadeIn.duration(300)}
-            exiting={FadeOut.duration(300)}
           >
-            <IconSymbol name="stop" size={theme.fontSize28} color="white" />
-          </ThemedPressable>
-        )}
-        {!isLoading && (
-          <ThemedPressable
-            style={{
-              backgroundColor: iconColor,
-              padding: 8,
-              borderRadius: "100%",
-            }}
-            onPress={() => {
-              generateNote(model ?? "apple", prompt ?? "alooo");
-            }}
-            animated
-            entering={FadeIn.duration(300)}
-            exiting={FadeOut.duration(300)}
-          >
-            <IconSymbol name="play" size={theme.fontSize28} color="white" />
-          </ThemedPressable>
-        )}
+            <View
+              style={{
+                backgroundColor: iconColor,
+                padding: 8,
+                borderRadius: "100%",
+              }}
+            >
+              <IconSymbol name="play" size={theme.fontSize28} color="white" />
+            </View>
+          </Modal.Trigger>
+          {
+            // TODO: Add on dismiss to cancel
+          }
+          <Modal.Content>
+            <View
+              style={{
+                height: height * 0.7,
+                gap: theme.space12,
+                marginVertical: theme.space16,
+                paddingHorizontal: theme.space24,
+              }}
+            >
+              <ThemedText
+                fontSize={theme.fontSize28}
+                fontWeight="bold"
+                fontFamily="mono"
+              >
+                Preview
+              </ThemedText>
+              <ScrollView
+                style={{ flex: 1 }}
+                ref={scrollViewRef}
+                scrollEnabled={!isLoading}
+                onContentSizeChange={() => {
+                  if (!isLoading) return;
+                  if (scrollDebounceRef.current) {
+                    clearTimeout(scrollDebounceRef.current);
+                  }
+                  scrollDebounceRef.current = setTimeout(() => {
+                    scrollViewRef.current?.scrollToEnd({ animated: true });
+                  }, 120);
+                }}
+              >
+                <Markdown style={markdownStyles}>{outputText}</Markdown>
+              </ScrollView>
+              <ThemedPressable
+                style={{
+                  width: "100%",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  backgroundColor: "red",
+                  paddingVertical: theme.space12,
+                  borderRadius: theme.borderRadius10,
+                }}
+                onPress={() => {
+                  cancelGeneration();
+                  bottomModalRef.current?.dismiss();
+                }}
+              >
+                <ThemedText fontSize={theme.fontSize16} fontWeight={600}>
+                  Cancel
+                </ThemedText>
+              </ThemedPressable>
+            </View>
+          </Modal.Content>
+        </Modal.Provider>
       </View>
-      <ThemedText fontSize={theme.fontSize14}>{outputText}</ThemedText>
     </View>
   );
 }
@@ -252,4 +310,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.space8,
     paddingVertical: theme.space12,
   },
+});
+
+//TODO: adjust markdown styles to theme
+const markdownStyles = StyleSheet.create({
+  text: { color: "#fff" },
 });

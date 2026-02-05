@@ -14,9 +14,17 @@ import { Asset } from "@/types/asset";
 import * as Device from "expo-device";
 import { SYSTEM_PROMPT, useAIModelState } from "./use-ai-model.shared";
 
-const MODEL_REPO = "noctrex/LightOnOCR-2-1B-GGUF";
-const MODEL_ID = `${MODEL_REPO}/LightOnOCR-2-1B-BF16.gguf`;
-const PROJECT_MODEL_ID = `${MODEL_REPO}/mmproj-BF16.gguf`;
+const CONFIG = Device.isDevice
+  ? {
+      MODEL_ID: "noctrex/LightOnOCR-2-1B-GGUF/LightOnOCR-2-1B-BF16.gguf",
+      PROJECT_MODEL_ID: "noctrex/LightOnOCR-2-1B-GGUF/mmproj-BF16.gguf",
+    }
+  : {
+      MODEL_ID:
+        "lmstudio-community/gemma-3-4b-it-GGUF/gemma-3-4b-it-Q3_K_L.gguf",
+      PROJECT_MODEL_ID:
+        "lmstudio-community/gemma-3-4b-it-GGUF/mmproj-model-f16.gguf",
+    };
 
 export function useAIModel() {
   const {
@@ -35,6 +43,7 @@ export function useAIModel() {
     setDownloadProgress,
     setIsDownloading,
     cancelGeneration,
+    removeAllModels,
   } = useAIModelState();
 
   const mapAssetToMessage = (photos: Asset[]): FilePart[] => {
@@ -143,11 +152,12 @@ export function useAIModel() {
           ? abortRef.current.signal
           : undefined;
 
-        const isDownloaded = await isModelDownloaded(MODEL_ID);
+        const isDownloaded = await isModelDownloaded(CONFIG.MODEL_ID);
         console.log("LLaMA model isDownloaded:", isDownloaded);
 
-        const isDownloadedProjectModel =
-          await isModelDownloaded(PROJECT_MODEL_ID);
+        const isDownloadedProjectModel = await isModelDownloaded(
+          CONFIG.PROJECT_MODEL_ID,
+        );
 
         console.log(
           "LLaMA project model isDownloaded:",
@@ -172,19 +182,19 @@ export function useAIModel() {
           if (needDownload) {
             setIsDownloading(true);
             // Download from HuggingFace (with progress)
-            await downloadModel(MODEL_ID, (progress) => {
+            await downloadModel(CONFIG.MODEL_ID, (progress) => {
               console.log(`Downloading: ${progress.percentage}%`);
             });
 
-            await downloadModel(PROJECT_MODEL_ID, (progress) => {
+            await downloadModel(CONFIG.PROJECT_MODEL_ID, (progress) => {
               console.log(`Downloading project model: ${progress.percentage}%`);
             });
 
             setIsDownloading(false);
           }
 
-          const modelPath = getModelPath(MODEL_ID);
-          const projectorPath = getModelPath(PROJECT_MODEL_ID);
+          const modelPath = getModelPath(CONFIG.MODEL_ID);
+          const projectorPath = getModelPath(CONFIG.PROJECT_MODEL_ID);
           const modelLlama = llama.languageModel(modelPath, {
             projectorPath,
             ...projectorOptions,
@@ -198,9 +208,9 @@ export function useAIModel() {
           const { textStream, reasoning, providerMetadata, totalUsage, text } =
             streamText({
               model: modelLlama,
-              system: SYSTEM_PROMPT,
               messages: [
                 { role: "user", content: prompt },
+                { role: "system", content: SYSTEM_PROMPT },
                 {
                   role: "user",
                   content: fileMessage,
@@ -263,8 +273,8 @@ export function useAIModel() {
         } catch (err) {
           // INFO: this happens when the model file is corrupted
           if (err === "Failed to load model") {
-            removeModel(MODEL_ID);
-            removeModel(PROJECT_MODEL_ID);
+            removeModel(CONFIG.MODEL_ID);
+            removeModel(CONFIG.PROJECT_MODEL_ID);
             setOutputText(
               "Failed to load LLaMA model. The model files might be corrupted and have been removed. Please try generating again to re-download the model.",
             );
@@ -294,5 +304,6 @@ export function useAIModel() {
     outputText,
     generateNote,
     cancelGeneration,
+    removeAllModels,
   };
 }

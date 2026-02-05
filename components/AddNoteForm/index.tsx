@@ -16,6 +16,7 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  Button,
   ScrollView,
   StyleSheet,
   TextInput,
@@ -97,6 +98,7 @@ function PromptInput() {
     outputStreamText,
     cancelGeneration,
     generateNote,
+    removeAllModels,
   } = useAIModel();
   const { height } = useWindowDimensions();
   const bottomModalRef = useRef<BottomSheetModal | null>(null);
@@ -220,6 +222,15 @@ function PromptInput() {
           </Modal.Content>
         </Modal.Provider>
       </View>
+      {
+        // TODO: remove this button when testing is done
+      }
+      <Button
+        onPress={() => {
+          removeAllModels();
+        }}
+        title="Remove all models"
+      />
     </View>
   );
 }

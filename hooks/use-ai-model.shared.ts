@@ -1,7 +1,8 @@
+import { getDownloadedModels, removeModel } from "@react-native-ai/llama";
 import { useCallback, useRef, useState } from "react";
 
 export const SYSTEM_PROMPT =
-  "You are an AI assistant that helps users write notes. Provide clear, concise, and relevant information based on the user's input. Write in a engaging and informative style in markdown format. Always write the note in markdown format.";
+  "You are an AI assistant that helps users write notes. Your main objective is to summarize images into clear, conciese, relevant and engaging notes. Use the users language of preference to write the note and to comunicate with the user. Write in a engaging and informative style in markdown format. Always write the note in markdown format.";
 
 export type AIModelSharedState = {
   isGenerating: boolean;
@@ -22,6 +23,7 @@ export type AIModelSharedHelpers = {
   appendReasoning: (text: string) => void;
   appendOutputStream: (text: string) => void;
   cancelGeneration: () => void;
+  removeAllModels: () => Promise<void>;
 };
 
 export function useAIModelState(): AIModelSharedState & AIModelSharedHelpers {
@@ -55,6 +57,14 @@ export function useAIModelState(): AIModelSharedState & AIModelSharedHelpers {
     appendOutputStream(`\n\nGeneration cancelled by user.`);
   };
 
+  const removeAllModels = async () => {
+    const models = await getDownloadedModels();
+    for (const model of models) {
+      console.log("Removing model:", model.path);
+      await removeModel(model.path);
+    }
+  };
+
   return {
     isGenerating,
     isDownloading,
@@ -71,5 +81,6 @@ export function useAIModelState(): AIModelSharedState & AIModelSharedHelpers {
     appendReasoning,
     appendOutputStream,
     cancelGeneration,
+    removeAllModels,
   };
 }

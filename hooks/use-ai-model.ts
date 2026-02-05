@@ -16,6 +16,7 @@ export function useAIModel() {
     appendReasoning,
     setOutputText,
     cancelGeneration,
+    removeAllModels,
   } = useAIModelState();
 
   const generateNote = async (
@@ -44,5 +45,6 @@ export function useAIModel() {
     outputStreamText,
     generateNote,
     cancelGeneration,
+    removeAllModels,
   };
 }

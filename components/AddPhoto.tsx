@@ -53,7 +53,6 @@ export default function AddPhoto({ onPhotoAdded }: AddPhotoProps) {
     if (result.canceled) {
       return;
     }
-    console.log(result.assets);
     onPhotoAdded?.(toAsset(result.assets));
     bottomModalRef.current?.dismiss();
   };

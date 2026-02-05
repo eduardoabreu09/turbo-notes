@@ -87,12 +87,17 @@ function TitleInput() {
 
 function PromptInput() {
   const {
-    state: { prompt, model },
+    state: { prompt, model, photos },
     actions: { update },
     meta: { promptRef },
   } = useNoteForm();
-  const { generateNote, outputText, cancelGeneration, isLoading } =
-    useAIModel();
+  const {
+    isGenerating,
+    outputText,
+    outputStreamText,
+    cancelGeneration,
+    generateNote,
+  } = useAIModel();
   const { height } = useWindowDimensions();
   const bottomModalRef = useRef<BottomSheetModal | null>(null);
   const scrollViewRef = useRef<ScrollView | null>(null);
@@ -135,7 +140,8 @@ function PromptInput() {
           <Modal.Trigger
             // TODO: fix Lint error
             onPress={() => {
-              generateNote(model, prompt);
+              if (outputStreamText) return;
+              generateNote(model ?? "llama", prompt ?? "", photos);
             }}
           >
             <View
@@ -151,12 +157,12 @@ function PromptInput() {
           {
             // TODO: Add on dismiss to cancel
           }
-          <Modal.Content>
+          <Modal.Content disableDismiss={isGenerating}>
             <View
               style={{
-                height: height * 0.7,
+                height: height * 0.6,
                 gap: theme.space12,
-                marginVertical: theme.space16,
+                marginBottom: theme.space16,
                 paddingHorizontal: theme.space24,
               }}
             >
@@ -170,9 +176,9 @@ function PromptInput() {
               <ScrollView
                 style={{ flex: 1 }}
                 ref={scrollViewRef}
-                scrollEnabled={!isLoading}
+                scrollEnabled={!isGenerating}
                 onContentSizeChange={() => {
-                  if (!isLoading) return;
+                  if (!isGenerating) return;
                   if (scrollDebounceRef.current) {
                     clearTimeout(scrollDebounceRef.current);
                   }
@@ -181,24 +187,33 @@ function PromptInput() {
                   }, 120);
                 }}
               >
-                <Markdown style={markdownStyles}>{outputText}</Markdown>
+                <Markdown style={markdownStyles}>
+                  {isGenerating ? outputStreamText : outputText}
+                </Markdown>
               </ScrollView>
               <ThemedPressable
                 style={{
                   width: "100%",
                   justifyContent: "center",
                   alignItems: "center",
-                  backgroundColor: "red",
+                  backgroundColor: isGenerating ? "red" : iconColor,
                   paddingVertical: theme.space12,
                   borderRadius: theme.borderRadius10,
                 }}
                 onPress={() => {
-                  cancelGeneration();
-                  bottomModalRef.current?.dismiss();
+                  if (!isGenerating) {
+                    generateNote(model ?? "llama", prompt ?? "", photos);
+                  }
+                  if (isGenerating) {
+                    cancelGeneration();
+                  }
+                  if (!outputText) {
+                    bottomModalRef.current?.dismiss();
+                  }
                 }}
               >
                 <ThemedText fontSize={theme.fontSize16} fontWeight={600}>
-                  Cancel
+                  {isGenerating ? "Stop Generation" : "Restart Generation"}
                 </ThemedText>
               </ThemedPressable>
             </View>
@@ -269,6 +284,7 @@ export default function AddNoteForm() {
       }}
     >
       <KeyboardAwareScrollView
+        contentInsetAdjustmentBehavior="automatic"
         style={{ flex: 1, backgroundColor }}
         disableScrollOnKeyboardHide
         keyboardDismissMode="on-drag"

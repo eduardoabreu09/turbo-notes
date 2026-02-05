@@ -20,6 +20,7 @@ import { IconSymbol } from "./icon-symbol";
 
 import { SelectionModalOption } from "@/store/selection-modal-store";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { FadeIn } from "react-native-reanimated";
 
 type IconName = ComponentProps<typeof IconSymbol>["name"];
 
@@ -112,9 +113,10 @@ function TriggerTitle({
 
 type ModalContentProps = {
   children: ReactNode;
+  disableDismiss?: boolean;
 };
 
-function ModalContent({ children }: ModalContentProps) {
+function ModalContent({ children, disableDismiss = false }: ModalContentProps) {
   const {
     state,
     actions: { update },
@@ -140,6 +142,9 @@ function ModalContent({ children }: ModalContentProps) {
       <GestureHandlerRootView style={styles.container}>
         <ThemedPressable
           style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)" }}
+          disabled={disableDismiss}
+          animated
+          entering={FadeIn.duration(150)}
           onPress={() => {
             handleDismiss();
           }}
@@ -158,6 +163,7 @@ function ModalContent({ children }: ModalContentProps) {
             bottomInset={theme.space24}
             // set `detached` to true
             detached={true}
+            enablePanDownToClose={!disableDismiss}
           >
             <BottomSheetView style={styles.contentContainer}>
               {children}

@@ -76,12 +76,11 @@ type TriggerProps = {
 
 function Trigger({ children, onPress }: TriggerProps) {
   const {
-    state,
     actions: { update },
   } = useModalContext();
 
   const handlePress = () => {
-    update((current) => ({ ...current, open: !state.open }));
+    update((current) => ({ ...current, open: !current.open }));
     Haptics.selectionAsync();
     onPress?.();
   };
@@ -129,9 +128,8 @@ function ModalContent({ children, disableDismiss = false }: ModalContentProps) {
   useEffect(() => {
     if (state.open) {
       bottomModalRef?.current?.present();
-      return;
     }
-  });
+  }, [state.open, bottomModalRef]);
 
   const handleDismiss = () => {
     bottomModalRef?.current?.dismiss();
@@ -181,7 +179,7 @@ type ModalSelectionProps = {
   height?: number;
 };
 
-function Selection({ options, onSelect, height = 200 }: ModalSelectionProps) {
+function Selection({ options, onSelect, height }: ModalSelectionProps) {
   const iconColor = useThemeColor("iconDefault");
   const backgroundColor = useThemeColor("backgroundSecondary");
 
@@ -189,13 +187,16 @@ function Selection({ options, onSelect, height = 200 }: ModalSelectionProps) {
     onSelect?.(option);
     Haptics.selectionAsync();
   };
+  const defaultHeight = options.length * 50 + 60;
+
   return (
     <>
       <View
         style={{
-          height,
+          height: height || defaultHeight,
           gap: theme.space8,
-          paddingHorizontal: theme.space24,
+          padding: theme.space24,
+          justifyContent: "flex-end",
         }}
       >
         {options.map((option) => (

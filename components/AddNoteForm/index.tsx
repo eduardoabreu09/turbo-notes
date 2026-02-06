@@ -8,13 +8,23 @@ import {
 } from "@/components/Themed";
 import { theme } from "@/constants/theme";
 import { useAIModel } from "@/hooks/use-ai-model";
-import { NoteFormContext, useNoteForm } from "@/hooks/use-note-form";
+import {
+  useInitModelCatalog,
+  useModelCatalogActions,
+  useModelDownloadProgress,
+} from "@/hooks/use-model-catalog";
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { useNoteFormStore } from "@/store/note-form-store";
 import { Asset, MAX_PHOTOS } from "@/types/asset";
-import { ModelOptions } from "@/types/model";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useFocusEffect } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
 import {
   Button,
   ScrollView,
@@ -28,42 +38,19 @@ import Markdown from "react-native-markdown-display";
 import Carousel from "../Carousel";
 import { IconSymbol } from "../ui/icon-symbol";
 import Modal from "../ui/Modal";
+import ProgressBar from "../ui/ProgressBar";
 
-export type NoteState = {
-  title: string;
-  prompt?: string;
-  photos: Asset[];
-  model?: ModelOptions;
+type TextInputRef = RefObject<TextInput | null>;
+
+type TitleInputProps = {
+  titleRef: TextInputRef;
 };
 
-export const InitialNoteState: NoteState = {
-  title: "New Note",
-  prompt: undefined,
-  photos: [],
-  model: undefined,
-};
-
-export type NoteActions = {
-  update: (updater: (current: NoteState) => NoteState) => void;
-};
-
-export type NoteMeta = {
-  titleRef?: React.RefObject<TextInput | null>;
-  promptRef?: React.RefObject<TextInput | null>;
-};
-
-export type NoteFormProps = {
-  state: NoteState;
-  actions: NoteActions;
-  meta: NoteMeta;
-};
-function TitleInput() {
+function TitleInput({ titleRef }: TitleInputProps) {
   const [hasFocused, setHasFocused] = useState(false);
-  const {
-    state: { title },
-    actions: { update },
-    meta: { titleRef },
-  } = useNoteForm();
+  const title = useNoteFormStore((state) => state.title);
+  const setTitle = useNoteFormStore((state) => state.setTitle);
+
   useFocusEffect(
     useCallback(() => {
       if (!hasFocused) {
@@ -79,27 +66,34 @@ function TitleInput() {
       style={{ fontSize: theme.fontSize24, fontWeight: "600" }}
       value={title}
       submitBehavior="blurAndSubmit"
-      onChangeText={(text) => {
-        update((current) => ({ ...current, title: text }));
-      }}
+      onChangeText={setTitle}
     />
   );
 }
 
-function PromptInput() {
-  const {
-    state: { prompt, model, photos },
-    actions: { update },
-    meta: { promptRef },
-  } = useNoteForm();
+type PromptInputProps = {
+  promptRef: TextInputRef;
+};
+
+function PromptInput({ promptRef }: PromptInputProps) {
+  const prompt = useNoteFormStore((state) => state.prompt);
+  const model = useNoteFormStore((state) => state.model);
+  const photos = useNoteFormStore((state) => state.photos);
+  const setPrompt = useNoteFormStore((state) => state.setPrompt);
+  useInitModelCatalog();
+
   const {
     isGenerating,
     outputText,
     outputStreamText,
+    activeModelKey,
+    activeModelLabel,
     cancelGeneration,
     generateNote,
-    removeAllModels,
   } = useAIModel();
+  const { downloadProgress, isDownloading } =
+    useModelDownloadProgress(activeModelKey);
+  const { removeAllDownloaded } = useModelCatalogActions();
   const { height } = useWindowDimensions();
   const bottomModalRef = useRef<BottomSheetModal | null>(null);
   const scrollViewRef = useRef<ScrollView | null>(null);
@@ -107,6 +101,7 @@ function PromptInput() {
 
   const borderColor = useThemeColor("border");
   const iconColor = useThemeColor("iconDefault");
+  const shouldShowDownloadProgress = isGenerating && isDownloading;
 
   useEffect(() => {
     return () => {
@@ -134,16 +129,15 @@ function PromptInput() {
           value={prompt}
           placeholder="Say something to guide the model..."
           submitBehavior="blurAndSubmit"
-          onChangeText={(text) => {
-            update((current) => ({ ...current, prompt: text }));
-          }}
+          onChangeText={setPrompt}
         />
         <Modal.Provider bottomModalRef={bottomModalRef}>
           <Modal.Trigger
-            // TODO: fix Lint error
             onPress={() => {
-              if (outputStreamText) return;
-              generateNote(model ?? "llama", prompt ?? "", photos);
+              if (outputStreamText) {
+                return;
+              }
+              generateNote(model, prompt ?? "", photos);
             }}
           >
             <View
@@ -156,9 +150,6 @@ function PromptInput() {
               <IconSymbol name="play" size={theme.fontSize28} color="white" />
             </View>
           </Modal.Trigger>
-          {
-            // TODO: Add on dismiss to cancel
-          }
           <Modal.Content disableDismiss={isGenerating}>
             <View
               style={{
@@ -175,12 +166,20 @@ function PromptInput() {
               >
                 Preview
               </ThemedText>
+              {shouldShowDownloadProgress && (
+                <ProgressBar
+                  progress={downloadProgress}
+                  text={`Downloading ${activeModelLabel ?? "model"}...`}
+                />
+              )}
               <ScrollView
                 style={{ flex: 1 }}
                 ref={scrollViewRef}
                 scrollEnabled={!isGenerating}
                 onContentSizeChange={() => {
-                  if (!isGenerating) return;
+                  if (!isGenerating) {
+                    return;
+                  }
                   if (scrollDebounceRef.current) {
                     clearTimeout(scrollDebounceRef.current);
                   }
@@ -189,9 +188,13 @@ function PromptInput() {
                   }, 120);
                 }}
               >
-                <Markdown style={markdownStyles}>
-                  {isGenerating ? outputStreamText : outputText}
-                </Markdown>
+                {isGenerating ? (
+                  <ThemedText style={styles.streamPreviewText}>
+                    {outputStreamText}
+                  </ThemedText>
+                ) : (
+                  <Markdown style={markdownStyles}>{outputText}</Markdown>
+                )}
               </ScrollView>
               <ThemedPressable
                 style={{
@@ -204,14 +207,12 @@ function PromptInput() {
                 }}
                 onPress={() => {
                   if (!isGenerating) {
-                    generateNote(model ?? "llama", prompt ?? "", photos);
+                    generateNote(model, prompt ?? "", photos);
+                    return;
                   }
-                  if (isGenerating) {
-                    cancelGeneration();
-                  }
-                  if (!outputText) {
-                    bottomModalRef.current?.dismiss();
-                  }
+
+                  cancelGeneration();
+                  bottomModalRef.current?.dismiss();
                 }}
               >
                 <ThemedText fontSize={theme.fontSize16} fontWeight={600}>
@@ -227,7 +228,7 @@ function PromptInput() {
       }
       <Button
         onPress={() => {
-          removeAllModels();
+          void removeAllDownloaded();
         }}
         title="Remove all models"
       />
@@ -235,26 +236,28 @@ function PromptInput() {
   );
 }
 
-function Header() {
-  const {
-    state: { photos },
-    actions: { update },
-  } = useNoteForm();
+type HeaderProps = {
+  titleRef: TextInputRef;
+};
 
-  const handlePhotoAdded = (assets: Asset[]) => {
-    const toAdd = [...photos, ...assets];
-    const start = Math.max(toAdd.length - MAX_PHOTOS, 0);
-    const end = start + MAX_PHOTOS;
+function Header({ titleRef }: HeaderProps) {
+  const photos = useNoteFormStore((state) => state.photos);
+  const setPhotos = useNoteFormStore((state) => state.setPhotos);
 
-    update((current) => ({
-      ...current,
-      photos: [...toAdd.slice(start, end)],
-    }));
-  };
+  const handlePhotoAdded = useCallback(
+    (assets: Asset[]) => {
+      const toAdd = [...photos, ...assets];
+      const start = Math.max(toAdd.length - MAX_PHOTOS, 0);
+      const end = start + MAX_PHOTOS;
+
+      setPhotos([...toAdd.slice(start, end)]);
+    },
+    [photos, setPhotos],
+  );
 
   return (
     <ThemedView style={styles.headerContainer}>
-      <TitleInput />
+      <TitleInput titleRef={titleRef} />
       <ThemedView style={styles.buttonsContainer}>
         <SelectModel />
         <AddPhoto onPhotoAdded={handlePhotoAdded} />
@@ -264,50 +267,38 @@ function Header() {
 }
 
 function FormCarousel() {
-  const {
-    state: { photos },
-    actions: { update },
-  } = useNoteForm();
+  const photos = useNoteFormStore((state) => state.photos);
+  const setPhotos = useNoteFormStore((state) => state.setPhotos);
 
-  const handlePhotoRemoved = (asset: Asset) => {
-    update((current) => ({
-      ...current,
-      photos: current.photos.filter((photo) => photo.uri !== asset.uri),
-    }));
-  };
+  const handlePhotoRemoved = useCallback(
+    (asset: Asset) => {
+      setPhotos(photos.filter((photo) => photo.uri !== asset.uri));
+    },
+    [photos, setPhotos],
+  );
 
   return <Carousel photos={photos} onPhotoRemoved={handlePhotoRemoved} />;
 }
 
 export default function AddNoteForm() {
-  const [state, setState] = useState<NoteState>(InitialNoteState);
   const backgroundColor = useThemeColor("background");
-
   const titleRef = useRef<TextInput>(null);
   const promptRef = useRef<TextInput>(null);
 
   return (
-    <NoteFormContext.Provider
-      value={{
-        state,
-        actions: { update: setState },
-        meta: { titleRef, promptRef },
-      }}
+    <KeyboardAwareScrollView
+      contentInsetAdjustmentBehavior="automatic"
+      style={{ flex: 1, backgroundColor }}
+      disableScrollOnKeyboardHide
+      keyboardDismissMode="on-drag"
+      bottomOffset={20}
     >
-      <KeyboardAwareScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={{ flex: 1, backgroundColor }}
-        disableScrollOnKeyboardHide
-        keyboardDismissMode="on-drag"
-        bottomOffset={20}
-      >
-        <ThemedView style={styles.container}>
-          <Header />
-          <FormCarousel />
-          <PromptInput />
-        </ThemedView>
-      </KeyboardAwareScrollView>
-    </NoteFormContext.Provider>
+      <ThemedView style={styles.container}>
+        <Header titleRef={titleRef} />
+        <FormCarousel />
+        <PromptInput promptRef={promptRef} />
+      </ThemedView>
+    </KeyboardAwareScrollView>
   );
 }
 
@@ -337,9 +328,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.space8,
     paddingVertical: theme.space12,
   },
+  streamPreviewText: {
+    fontSize: theme.fontSize16,
+    lineHeight: 24,
+  },
 });
 
-//TODO: adjust markdown styles to theme
+// TODO: adjust markdown styles to theme
 const markdownStyles = StyleSheet.create({
   text: { color: "#fff" },
 });

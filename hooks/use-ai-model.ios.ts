@@ -1,61 +1,44 @@
-import { ModelOptions } from "@/types/model";
-
-import { apple } from "@react-native-ai/apple";
-import {
-  downloadModel,
-  getModelPath,
-  isModelDownloaded,
-  llama,
-  removeModel,
-} from "@react-native-ai/llama";
-import { FilePart, streamText } from "ai";
-
 import { Asset } from "@/types/asset";
-import * as Device from "expo-device";
-import { SYSTEM_PROMPT, useAIModelState } from "./use-ai-model.shared";
-
-const CONFIG = Device.isDevice
-  ? {
-      MODEL_ID: "noctrex/LightOnOCR-2-1B-GGUF/LightOnOCR-2-1B-BF16.gguf",
-      PROJECT_MODEL_ID: "noctrex/LightOnOCR-2-1B-GGUF/mmproj-BF16.gguf",
-    }
-  : {
-      MODEL_ID:
-        "lmstudio-community/gemma-3-4b-it-GGUF/gemma-3-4b-it-Q3_K_L.gguf",
-      PROJECT_MODEL_ID:
-        "lmstudio-community/gemma-3-4b-it-GGUF/mmproj-model-f16.gguf",
-    };
+import { apple } from "@react-native-ai/apple";
+import { streamText } from "ai";
+import { useState } from "react";
+import {
+  SYSTEM_PROMPT,
+  appendStreamChunk,
+  mapAssetToMessage,
+  runLlamaGeneration,
+  useAIModelState,
+} from "./use-ai-model.shared";
+import { useModelCatalogGeneration } from "./use-model-catalog";
 
 export function useAIModel() {
   const {
     isGenerating,
-    isDownloading,
-    downloadProgress,
     reasoningLog,
     outputStreamText,
     outputText,
     abortRef,
     setIsGenerating,
     resetStreamingState,
+    flushStreamingBuffers,
     appendReasoning,
     appendOutputStream,
     setOutputText,
-    setDownloadProgress,
-    setIsDownloading,
     cancelGeneration,
-    removeAllModels,
   } = useAIModelState();
-
-  const mapAssetToMessage = (photos: Asset[]): FilePart[] => {
-    return photos.map((photo) => ({
-      type: "file",
-      mediaType: photo.mimeType || "image/jpeg",
-      data: photo.uri, // Assuming uri is a local file path
-    }));
-  };
+  const {
+    resolveForGeneration,
+    buildLlamaRuntime,
+    ensureDownloaded,
+    handleCorruptedModel,
+  } = useModelCatalogGeneration();
+  const [activeModelKey, setActiveModelKey] = useState<string | undefined>();
+  const [activeModelLabel, setActiveModelLabel] = useState<
+    string | undefined
+  >();
 
   const generateNote = async (
-    model: ModelOptions,
+    modelKey: string | undefined,
     prompt: string,
     photos?: Asset[],
   ) => {
@@ -64,21 +47,34 @@ export function useAIModel() {
     abortRef.current?.abort();
     abortRef.current = new AbortController();
 
-    const appendChunk = (delta: unknown) => {
-      if (typeof delta === "string") {
-        appendOutputStream(delta);
-      } else if (typeof (delta as { text?: string })?.text === "string") {
-        appendOutputStream((delta as { text: string }).text);
-      }
-    };
+    try {
+      const hasMedia = Boolean(photos?.length);
+      const selectedModel = resolveForGeneration(modelKey, hasMedia);
+      const abortSignal = abortRef.current?.signal;
 
-    switch (model) {
-      case "apple":
-        {
-          const appleAbortSignal = abortRef.current
-            ? abortRef.current.signal
-            : undefined;
+      if (!selectedModel) {
+        setOutputText("No model available. Add or download a model first.");
+        return;
+      }
+      setActiveModelKey(selectedModel.key);
+      setActiveModelLabel(selectedModel.label);
+
+      switch (selectedModel.provider) {
+        case "apple": {
+          if (!apple.isAvailable()) {
+            setOutputText(
+              "Apple Intelligence is not available on this device. Select another model.",
+            );
+            break;
+          }
+
           const fileMessage = mapAssetToMessage(photos || []);
+          const messages = [
+            { role: "user" as const, content: prompt },
+            ...(fileMessage.length > 0
+              ? [{ role: "user" as const, content: fileMessage }]
+              : []),
+          ];
 
           try {
             const {
@@ -89,25 +85,17 @@ export function useAIModel() {
             } = streamText({
               model: apple(),
               system: SYSTEM_PROMPT,
-              messages: [
-                { role: "user", content: prompt },
-                {
-                  role: "user",
-                  content: fileMessage,
-                },
-              ],
-              abortSignal: appleAbortSignal,
+              messages,
+              abortSignal,
               onAbort: () => {
                 appendOutputStream("\n\nGeneration cancelled by user.");
               },
-              // NOTE: add images to the provider input when the SDK supports it on iOS.
             });
 
             const consumeReasoning = (async () => {
               const appleReasoningOutput = await appleReasoning;
               for (const delta of appleReasoningOutput) {
                 if (delta?.text) {
-                  console.log("apple reasoning:", delta);
                   appendReasoning(delta.text);
                 }
               }
@@ -117,9 +105,7 @@ export function useAIModel() {
               const iterator = appleTextStream[Symbol.asyncIterator]();
               let result = await iterator.next();
               while (!result.done) {
-                const delta = result.value;
-                console.log("apple output:", delta);
-                appendChunk(delta);
+                appendStreamChunk(result.value, appendOutputStream);
                 result = await iterator.next();
               }
             })();
@@ -143,167 +129,59 @@ export function useAIModel() {
           } catch (error) {
             console.log("Error during Apple model processing:", error);
           }
+          break;
         }
-        break;
-
-      case "llama":
-        // Create model instance (Model ID format: "owner/repo/filename.gguf")
-        const abortSignal = abortRef.current
-          ? abortRef.current.signal
-          : undefined;
-
-        const isDownloaded = await isModelDownloaded(CONFIG.MODEL_ID);
-        console.log("LLaMA model isDownloaded:", isDownloaded);
-
-        const isDownloadedProjectModel = await isModelDownloaded(
-          CONFIG.PROJECT_MODEL_ID,
-        );
-
-        console.log(
-          "LLaMA project model isDownloaded:",
-          isDownloadedProjectModel,
-        );
-
-        const needDownload = !isDownloaded || !isDownloadedProjectModel;
-        const fileMessage = mapAssetToMessage(photos || []);
-        const projectorOptions = Device.isDevice
-          ? {
-              projectorUseGpu: true,
-              contextParams: {
-                n_ctx: 2048,
-                n_gpu_layers: 99, // Recommended for multimodal models
-                // Important: Disable context shifting for multimodal
-                ctx_shift: false,
-              },
-            }
-          : { projectorUseGpu: false };
-        console.log("fileMessage:", fileMessage);
-        try {
-          if (needDownload) {
-            setIsDownloading(true);
-            // Download from HuggingFace (with progress)
-            await downloadModel(CONFIG.MODEL_ID, (progress) => {
-              console.log(`Downloading: ${progress.percentage}%`);
-            });
-
-            await downloadModel(CONFIG.PROJECT_MODEL_ID, (progress) => {
-              console.log(`Downloading project model: ${progress.percentage}%`);
-            });
-
-            setIsDownloading(false);
-          }
-
-          const modelPath = getModelPath(CONFIG.MODEL_ID);
-          const projectorPath = getModelPath(CONFIG.PROJECT_MODEL_ID);
-          const modelLlama = llama.languageModel(modelPath, {
-            projectorPath,
-            ...projectorOptions,
-          });
-
-          // Initialize model (loads into memory)
-          const context = await modelLlama.prepare();
-          console.log("LLaMA model context:", context.systemInfo);
-
-          // Generate text
-          const { textStream, reasoning, providerMetadata, totalUsage, text } =
-            streamText({
-              model: modelLlama,
-              messages: [
-                { role: "user", content: prompt },
-                { role: "system", content: SYSTEM_PROMPT },
-                {
-                  role: "user",
-                  content: fileMessage,
-                },
-              ],
-              abortSignal,
-              onAbort: () => {
-                appendOutputStream("\n\nGeneration cancelled by user.");
-              },
-            });
-
-          const consumeReasoning = (async () => {
-            const reasoningOutput = await reasoning;
-            for (const delta of reasoningOutput) {
-              if (delta?.text) {
-                console.log("llama reasoning:", delta);
-                appendReasoning(delta.text);
-              }
-            }
-          })();
-
-          const consumeText = (async () => {
-            const iterator = textStream[Symbol.asyncIterator]();
-            let result = await iterator.next();
-            while (!result.done) {
-              const delta = result.value;
-              console.log("llama output:", delta);
-              appendChunk(delta);
-              result = await iterator.next();
-            }
-          })();
-
-          const consumeMetaData = (async () => {
-            const data = await providerMetadata;
-
-            console.log("data", data);
-          })();
-
-          const consumeTotalUsage = (async () => {
-            const usage = await totalUsage;
-
-            console.log("usage", usage);
-          })();
-
-          const consumeFinalText = (async () => {
-            const finalText = await text;
-            setOutputText(finalText);
-          })();
-
-          await Promise.all([
-            consumeReasoning,
-            consumeText,
-            consumeMetaData,
-            consumeTotalUsage,
-            consumeFinalText,
-          ]);
-
-          // Cleanup when done
-          await modelLlama.unload();
-        } catch (err) {
-          // INFO: this happens when the model file is corrupted
-          if (err === "Failed to load model") {
-            removeModel(CONFIG.MODEL_ID);
-            removeModel(CONFIG.PROJECT_MODEL_ID);
+        case "llama": {
+          const runtime = buildLlamaRuntime(selectedModel.key, hasMedia);
+          if (!runtime) {
             setOutputText(
-              "Failed to load LLaMA model. The model files might be corrupted and have been removed. Please try generating again to re-download the model.",
+              `Model "${selectedModel.label}" is not configured correctly.`,
             );
+            break;
           }
-          console.log("Error during LLaMA model processing:", err);
-          appendOutputStream(
-            "An error occurred while processing the LLaMA model. Please try again.",
-          );
-          // TODO: Cleanup when done
+
+          try {
+            await ensureDownloaded(runtime.selectedModel.key);
+          } catch (error) {
+            console.log("Error while downloading model:", error);
+            appendOutputStream(
+              "An error occurred while downloading the model. Please try again.",
+            );
+            break;
+          }
+
+          await runLlamaGeneration({
+            runtime,
+            prompt,
+            photos,
+            abortSignal,
+            setOutputText,
+            appendReasoning,
+            appendOutputStream,
+            onCorruptedModel: async () => {
+              await handleCorruptedModel(runtime.selectedModel.key);
+            },
+          });
+          break;
         }
-
-        break;
-      default:
-        break;
+      }
+    } finally {
+      flushStreamingBuffers();
+      abortRef.current = null;
+      setActiveModelKey(undefined);
+      setActiveModelLabel(undefined);
+      setIsGenerating(false);
     }
-
-    abortRef.current = null;
-    setIsGenerating(false);
   };
 
   return {
     isGenerating,
-    isDownloading,
-    downloadProgress,
     reasoningLog,
     outputStreamText,
     outputText,
+    activeModelKey,
+    activeModelLabel,
     generateNote,
     cancelGeneration,
-    removeAllModels,
   };
 }

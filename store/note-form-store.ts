@@ -1,21 +1,21 @@
 import { Asset } from "@/types/asset";
 import { create } from "zustand";
 
-export type NoteState = {
+export type NoteFormState = {
   title: string;
   prompt?: string;
   photos: Asset[];
   model?: string;
 };
 
-export const initialNoteState: NoteState = {
+export const initialNoteState: NoteFormState = {
   title: "New Note",
   prompt: undefined,
   photos: [],
   model: undefined,
 };
 
-type NoteFormStore = NoteState & {
+type NoteFormStore = NoteFormState & {
   setTitle: (title: string) => void;
   setPrompt: (prompt?: string) => void;
   setPhotos: (photos: Asset[]) => void;

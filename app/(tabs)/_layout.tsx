@@ -1,9 +1,8 @@
-import MaterialComunityIcon from "@expo/vector-icons/MaterialCommunityIcons";
-import MaterialIcon from "@expo/vector-icons/MaterialIcons";
 import { Tabs } from "expo-router";
 import React from "react";
 
-import { HapticTab } from "@/components/haptic-tab";
+import { HapticTab } from "@/components/HapticTab";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useThemeColor } from "@/hooks/use-theme-color";
 
 export default function TabLayout() {
@@ -22,16 +21,16 @@ export default function TabLayout() {
         options={{
           title: "Home",
           tabBarIcon: ({ color }) => (
-            <MaterialIcon size={28} name="home" color={color} />
+            <IconSymbol size={28} name="house.fill" color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="add-note"
         options={{
-          title: "Explore",
+          title: "Add Note",
           tabBarIcon: ({ color }) => (
-            <MaterialIcon size={28} name="explore" color={color} />
+            <IconSymbol size={28} name="plus.app.fill" color={color} />
           ),
         }}
       />
@@ -40,7 +39,7 @@ export default function TabLayout() {
         options={{
           title: "Search",
           tabBarIcon: ({ color }) => (
-            <MaterialComunityIcon size={28} name="magnify" color={color} />
+            <IconSymbol size={28} name="magnifyingglass" color={color} />
           ),
         }}
       />

@@ -25,7 +25,7 @@ export default function Layout() {
           headerTitle: () =>
             Platform.OS === "android" ? (
               <ThemedText fontSize={theme.fontSize20} fontWeight="bold">
-                Speakers
+                Search
               </ThemedText>
             ) : undefined,
 
@@ -34,7 +34,7 @@ export default function Layout() {
             tintColor: tabBarTintColor,
             textColor: tabBarTintColor,
             hintTextColor: tabBarTintColor,
-            placeholder: "Search speakers",
+            placeholder: "Search notes",
             onChangeText: (event) => {
               router.setParams({
                 q: event.nativeEvent.text,

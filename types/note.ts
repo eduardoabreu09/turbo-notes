@@ -3,6 +3,8 @@ import { Asset } from "./asset";
 export type Note = {
   id: string;
   title: string;
+  prompt: string;
+  modelId: string;
   content: string;
   createdAt: Date;
   updatedAt: Date;
@@ -12,6 +14,8 @@ export type Note = {
 
 export type AddNote = {
   title: string;
+  prompt: string;
+  modelId: string;
   content: string;
   photos?: Asset[];
   emoji?: string;

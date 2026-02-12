@@ -1,0 +1,91 @@
+import { ThemedText } from "@/components/Themed";
+import { theme } from "@/constants/theme";
+import { useThemeColor } from "@/hooks/use-theme-color";
+import { StyleSheet, View } from "react-native";
+import HomeActionButton from "./HomeActionButton";
+import HomeStatChip from "./HomeStatChip";
+
+type HomeHeroCardProps = {
+  noteCount: number;
+  downloadedModelCount: number;
+  totalModelCount: number;
+  onCreateNote: () => void;
+  onSearchNotes: () => void;
+};
+
+export default function HomeHeroCard({
+  noteCount,
+  downloadedModelCount,
+  totalModelCount,
+  onCreateNote,
+  onSearchNotes,
+}: HomeHeroCardProps) {
+  const secondaryTextColor = useThemeColor("textSecondary");
+  const borderColor = useThemeColor("border");
+  const cardColor = useThemeColor("backgroundSecondary");
+
+  return (
+    <View
+      style={[styles.heroCard, { borderColor, backgroundColor: cardColor }]}
+    >
+      <ThemedText fontFamily="mono" fontSize={theme.fontSize18}>
+        TURBO NOTES
+      </ThemedText>
+      <ThemedText fontSize={theme.fontSize34} fontWeight="bold">
+        Your AI note assistant.
+      </ThemedText>
+      <ThemedText
+        fontSize={theme.fontSize16}
+        style={{ color: secondaryTextColor, lineHeight: 24 }}
+      >
+        Capture ideas with photos, run local AI models, and keep everything
+        searchable in one place.
+      </ThemedText>
+      <ThemedText
+        fontSize={theme.fontSize14}
+        style={{ color: secondaryTextColor, lineHeight: 20 }}
+      >
+        Privacy first: AI runs on-device, with no cloud processing and no
+        internet required after models are downloaded.
+      </ThemedText>
+
+      <View style={styles.statRow}>
+        <HomeStatChip label="Notes saved" value={String(noteCount)} />
+        <HomeStatChip
+          label="Models ready"
+          value={`${downloadedModelCount}/${totalModelCount}`}
+        />
+      </View>
+
+      <View style={styles.ctaRow}>
+        <HomeActionButton
+          icon="plus.app"
+          title="Create Note"
+          onPress={onCreateNote}
+        />
+        <HomeActionButton
+          icon="magnifyingglass"
+          title="Search Notes"
+          onPress={onSearchNotes}
+        />
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  heroCard: {
+    borderWidth: 1,
+    borderRadius: theme.borderRadius20,
+    padding: theme.space16,
+    gap: theme.space12,
+  },
+  statRow: {
+    flexDirection: "row",
+    gap: theme.space8,
+  },
+  ctaRow: {
+    flexDirection: "row",
+    gap: theme.space8,
+  },
+});

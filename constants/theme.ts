@@ -118,6 +118,8 @@ export const theme = {
   space12: spaceScale(12),
   space16: spaceScale(16),
   space24: spaceScale(24),
+  space32: spaceScale(32),
+  space64: spaceScale(64),
 
   fontSize10: fontScale(10),
   fontSize12: fontScale(12),

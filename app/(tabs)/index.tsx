@@ -1,7 +1,7 @@
 import { ThemedView } from "@/components/Themed";
 import HomeFeatureSection from "@/components/home/HomeFeatureSection";
 import HomeHeroCard from "@/components/home/HomeHeroCard";
-import { HOME_FEATURES } from "@/components/home/home-data";
+import { HOME_FEATURES } from "@/constants/home-data";
 import { theme } from "@/constants/theme";
 import {
   useInitModelCatalog,

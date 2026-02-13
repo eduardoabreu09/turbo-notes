@@ -18,7 +18,7 @@ import { Modal as ModalRN, StyleSheet, View } from "react-native";
 import { ThemedPressable, ThemedText } from "../Themed";
 import { IconSymbol } from "./icon-symbol";
 
-import { SelectionModalOption } from "@/store/selection-modal-store";
+import { SelectionModalOption } from "@/types/selection";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { FadeIn } from "react-native-reanimated";
 

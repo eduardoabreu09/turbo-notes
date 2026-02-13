@@ -1,7 +1,8 @@
-import { useNoteFormStore } from "@/store/note-form-store";
-import { SelectionModalOption } from "@/store/selection-modal-store";
+import { useNoteForm } from "@/store/note-form-store";
+import { SelectionModalOption } from "@/types/selection";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useEffect, useMemo, useRef } from "react";
+import { useShallow } from "zustand/react/shallow";
 import Modal from "../ui/Modal";
 
 export type SelectModelProps = {
@@ -9,8 +10,12 @@ export type SelectModelProps = {
 };
 
 export default function BaseSelectModel({ menuOptions }: SelectModelProps) {
-  const model = useNoteFormStore((state) => state.model);
-  const setModel = useNoteFormStore((state) => state.setModel);
+  const { model, setModel } = useNoteForm(
+    useShallow((state) => ({
+      model: state.model,
+      setModel: state.setModel,
+    })),
+  );
   const bottomModalRef = useRef<BottomSheetModal | null>(null);
 
   useEffect(() => {

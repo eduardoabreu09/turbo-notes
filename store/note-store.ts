@@ -1,4 +1,5 @@
 import { AddNote, Note } from "@/types/note";
+import * as Crypto from "expo-crypto";
 import { create } from "zustand";
 
 export type NoteState = {
@@ -24,13 +25,14 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
     const now = new Date();
     const newNote: Note = {
       ...noteToAdd,
-      id: crypto.randomUUID(),
+      id: Crypto.randomUUID(),
       createdAt: now,
       updatedAt: now,
     };
     // TODO Make sure copying the map is needed
-    const map = get().notes;
-    set({ notes: map.set(newNote.id, newNote) });
+    const map = new Map(get().notes);
+    map.set(newNote.id, newNote);
+    set({ notes: map });
   },
   getNoteById: (id) => get().notes.get(id),
   updateNote: (id, updatedFields) => {

@@ -8,7 +8,7 @@ import Animated, {
   FadeOut,
   LinearTransition,
 } from "react-native-reanimated";
-import { HomeFeatureCard } from "./home-data";
+import { HomeFeatureCard } from "../../constants/home-data";
 
 type HomeFeatureSectionProps = {
   features: HomeFeatureCard[];

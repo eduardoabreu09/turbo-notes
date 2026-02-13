@@ -1,5 +1,5 @@
 import { useModelCatalogModels } from "@/hooks/use-model-catalog";
-import { SelectionModalOption } from "@/store/selection-modal-store";
+import { SelectionModalOption } from "@/types/selection";
 import { ComponentProps, useMemo } from "react";
 import { IconSymbol } from "../ui/icon-symbol";
 import BaseSelectModel from "./base";

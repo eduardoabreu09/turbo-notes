@@ -29,28 +29,30 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
       createdAt: now,
       updatedAt: now,
     };
-    // TODO Make sure copying the map is needed
     const map = new Map(get().notes);
     map.set(newNote.id, newNote);
     set({ notes: map });
   },
   getNoteById: (id) => get().notes.get(id),
   updateNote: (id, updatedFields) => {
-    const map = get().notes;
+    const map = new Map(get().notes);
     const existingNote = map.get(id);
+
     if (!existingNote) return false;
     const updatedNote = {
       ...existingNote,
       ...updatedFields,
       updatedAt: new Date(),
     };
-    //
-    set({ notes: map.set(id, updatedNote) });
+
+    map.set(id, updatedNote);
+    set({ notes: map });
     return true;
   },
   removeNote: (note) => {
-    const map = get().notes;
+    const map = new Map(get().notes);
     const result = map.delete(note.id);
+
     if (result) {
       set({ notes: map });
       return true;
@@ -58,7 +60,7 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
     return false;
   },
   removeNoteById: (id) => {
-    const map = get().notes;
+    const map = new Map(get().notes);
     const result = map.delete(id);
     if (result) {
       set({ notes: map });

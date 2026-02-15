@@ -7,15 +7,16 @@ import {
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useNoteForm } from "@/store/note-form-store";
 import { useNoteStore } from "@/store/note-store";
-import { useEffect, useRef } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import {
   Button,
   ScrollView,
   StyleSheet,
+  useColorScheme,
   useWindowDimensions,
   View,
 } from "react-native";
-import Markdown from "react-native-markdown-display";
+import { useMarkdown, useMarkdownHookOptions } from "react-native-marked";
 import { useShallow } from "zustand/react/shallow";
 import { ThemedPressable, ThemedText, ThemedTextInput } from "../Themed";
 import Modal from "../ui/Modal";
@@ -42,6 +43,7 @@ export default function PromptInput() {
     outputStreamText,
     activeModelKey,
     activeModelLabel,
+    generatedModelKey,
     cancelGeneration,
     generateNote,
   } = useAIModel();
@@ -56,6 +58,7 @@ export default function PromptInput() {
   const borderColor = useThemeColor("border");
   const iconColor = useThemeColor("iconDefault");
   const shouldShowDownloadProgress = isGenerating && isDownloading;
+  const canSaveGeneratedNote = Boolean(outputText && generatedModelKey);
 
   useEffect(() => {
     return () => {
@@ -147,7 +150,7 @@ export default function PromptInput() {
                     {outputStreamText}
                   </ThemedText>
                 ) : (
-                  <Markdown style={markdownStyles}>{outputText}</Markdown>
+                  <Markdown value={outputText} />
                 )}
               </ScrollView>
               <View
@@ -186,16 +189,21 @@ export default function PromptInput() {
                       justifyContent: "center",
                       alignItems: "center",
                       backgroundColor: iconColor,
+                      opacity: canSaveGeneratedNote ? 1 : 0.45,
                       paddingVertical: theme.space12,
                       borderRadius: theme.borderRadius10,
                     }}
+                    disabled={!canSaveGeneratedNote}
                     onPress={() => {
+                      if (!generatedModelKey) {
+                        return;
+                      }
                       addNote({
                         title,
                         content: outputText,
                         photos,
                         prompt,
-                        modelId: activeModelKey ?? "unknown",
+                        modelId: generatedModelKey,
                       });
                       bottomModalRef.current?.dismiss();
                     }}
@@ -223,6 +231,21 @@ export default function PromptInput() {
   );
 }
 
+function Markdown({ value }: { value: string }) {
+  const colorScheme = useColorScheme();
+  const options: useMarkdownHookOptions = {
+    colorScheme,
+  };
+  const elements = useMarkdown(value, options);
+  return (
+    <>
+      {elements.map((element, index) => {
+        return <Fragment key={`demo_${index}`}>{element}</Fragment>;
+      })}
+    </>
+  );
+}
+
 const styles = StyleSheet.create({
   promptInput: {
     fontSize: theme.fontSize18,
@@ -237,9 +260,4 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSize16,
     lineHeight: 24,
   },
-});
-
-// TODO: adjust markdown styles to theme
-const markdownStyles = StyleSheet.create({
-  text: { color: "#fff" },
 });

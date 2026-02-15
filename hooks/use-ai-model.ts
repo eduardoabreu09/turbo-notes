@@ -28,6 +28,9 @@ export function useAIModel() {
   const [activeModelLabel, setActiveModelLabel] = useState<
     string | undefined
   >();
+  const [generatedModelKey, setGeneratedModelKey] = useState<
+    string | undefined
+  >();
 
   const generateNote = async (
     modelKey: string | undefined,
@@ -35,6 +38,8 @@ export function useAIModel() {
     photos?: Asset[],
   ) => {
     resetStreamingState();
+    setOutputText("");
+    setGeneratedModelKey(undefined);
     setIsGenerating(true);
     abortRef.current?.abort();
     abortRef.current = new AbortController();
@@ -50,6 +55,7 @@ export function useAIModel() {
       }
       setActiveModelKey(selectedModel.key);
       setActiveModelLabel(selectedModel.label);
+      setGeneratedModelKey(selectedModel.key);
 
       if (selectedModel.provider === "apple") {
         appendReasoning("Apple Intelligence is only available on iOS.");
@@ -105,6 +111,7 @@ export function useAIModel() {
     outputStreamText,
     activeModelKey,
     activeModelLabel,
+    generatedModelKey,
     generateNote,
     cancelGeneration,
   };

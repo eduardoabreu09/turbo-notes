@@ -36,6 +36,9 @@ export function useAIModel() {
   const [activeModelLabel, setActiveModelLabel] = useState<
     string | undefined
   >();
+  const [generatedModelKey, setGeneratedModelKey] = useState<
+    string | undefined
+  >();
 
   const generateNote = async (
     modelKey: string | undefined,
@@ -43,6 +46,8 @@ export function useAIModel() {
     photos?: Asset[],
   ) => {
     resetStreamingState();
+    setOutputText("");
+    setGeneratedModelKey(undefined);
     setIsGenerating(true);
     abortRef.current?.abort();
     abortRef.current = new AbortController();
@@ -58,6 +63,7 @@ export function useAIModel() {
       }
       setActiveModelKey(selectedModel.key);
       setActiveModelLabel(selectedModel.label);
+      setGeneratedModelKey(selectedModel.key);
 
       switch (selectedModel.provider) {
         case "apple": {
@@ -181,6 +187,7 @@ export function useAIModel() {
     outputText,
     activeModelKey,
     activeModelLabel,
+    generatedModelKey,
     generateNote,
     cancelGeneration,
   };

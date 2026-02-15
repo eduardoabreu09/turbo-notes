@@ -6,7 +6,7 @@ import HomeActionButton from "./HomeActionButton";
 import HomeStatChip from "./HomeStatChip";
 
 type HomeHeroCardProps = {
-  noteCount: number;
+  noteCountLabel: string;
   downloadedModelCount: number;
   totalModelCount: number;
   onCreateNote: () => void;
@@ -14,7 +14,7 @@ type HomeHeroCardProps = {
 };
 
 export default function HomeHeroCard({
-  noteCount,
+  noteCountLabel,
   downloadedModelCount,
   totalModelCount,
   onCreateNote,
@@ -50,7 +50,7 @@ export default function HomeHeroCard({
       </ThemedText>
 
       <View style={styles.statRow}>
-        <HomeStatChip label="Notes saved" value={String(noteCount)} />
+        <HomeStatChip label="Notes saved" value={noteCountLabel} />
         <HomeStatChip
           label="Models ready"
           value={`${downloadedModelCount}/${totalModelCount}`}

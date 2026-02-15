@@ -12,14 +12,21 @@ import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Platform, ScrollView } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
+import { useShallow } from "zustand/react/shallow";
 
 export default function HomeScreen() {
   useInitModelCatalog();
 
   const router = useRouter();
 
-  const noteCount = useNoteStore((state) => state.notes.size);
+  const { hasHydrated, noteCount } = useNoteStore(
+    useShallow((state) => ({
+      hasHydrated: state.hasHydrated,
+      noteCount: Object.keys(state.notes).length,
+    })),
+  );
   const { models } = useModelCatalogModels();
+  const noteCountLabel = hasHydrated ? String(noteCount) : "...";
 
   const downloadedModelCount = useMemo(
     () => models.filter((model) => model.isDownloaded).length,
@@ -41,7 +48,7 @@ export default function HomeScreen() {
       >
         <Animated.View entering={FadeInDown.duration(350)}>
           <HomeHeroCard
-            noteCount={noteCount}
+            noteCountLabel={noteCountLabel}
             downloadedModelCount={downloadedModelCount}
             totalModelCount={models.length}
             onCreateNote={() => {

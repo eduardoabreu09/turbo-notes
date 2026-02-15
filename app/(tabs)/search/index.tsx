@@ -4,16 +4,22 @@ import { useThemeColor } from "@/hooks/use-theme-color";
 import { useNoteStore } from "@/store/note-store";
 import { Note } from "@/types/note";
 import { ScrollView, StyleSheet, View } from "react-native";
+import { useShallow } from "zustand/react/shallow";
 
 export default function SearchIndex() {
   const backgroundColor = useThemeColor("background");
-  const notesDict = useNoteStore((state) => state.notes);
-  const notes = Array.from(notesDict.entries());
+  const { hasHydrated, notesDict } = useNoteStore(
+    useShallow((state) => ({
+      hasHydrated: state.hasHydrated,
+      notesDict: state.notes,
+    })),
+  );
+  const notes = Object.values(notesDict) as Note[];
 
   const renderItem = (note: Note) => {
     return (
       <View key={note.id} style={{ gap: theme.space4 }}>
-        <ThemedText key={note.id}>
+        <ThemedText>
           {note.emoji} {note.title}
         </ThemedText>
         <ThemedText>{note.content}</ThemedText>
@@ -25,7 +31,11 @@ export default function SearchIndex() {
     <ScrollView style={{ flex: 1, backgroundColor }}>
       <ThemedView style={styles.container}>
         <ThemedView style={styles.titleContainer}></ThemedView>
-        {notes.map((note) => renderItem(note[1]))}
+        {!hasHydrated ? (
+          <ThemedText fontSize={theme.fontSize16}>Loading notes...</ThemedText>
+        ) : (
+          notes.map((note) => renderItem(note))
+        )}
       </ThemedView>
     </ScrollView>
   );

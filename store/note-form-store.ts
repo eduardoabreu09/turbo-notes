@@ -2,7 +2,7 @@ import { Asset } from "@/types/asset";
 import { createStore, useStore } from "zustand";
 
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { createContext, createRef, useContext } from "react";
+import { createContext, createRef, use } from "react";
 import { TextInput } from "react-native";
 
 type State = {
@@ -56,7 +56,7 @@ export const createNoteFormStore = (initProps?: Partial<State>) => {
 export const NoteFormContext = createContext<Store | null>(null);
 
 export function useNoteForm<T>(selector: (state: NoteFormStore) => T): T {
-  const store = useContext(NoteFormContext);
+  const store = use(NoteFormContext);
   if (!store) throw new Error("Missing NoteForm.Provider in the tree");
   return useStore(store, selector);
 }

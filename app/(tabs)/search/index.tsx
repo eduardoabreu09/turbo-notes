@@ -20,7 +20,9 @@ export default function SearchIndex() {
   );
   const query = useLocalSearchParams();
   const notes = useMemo(() => {
-    const res = Object.values(notesDict) as Note[];
+    const res = (Object.values(notesDict) as Note[]).sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+    );
     if (query.q) {
       return res.filter((note) =>
         note.title.toLowerCase().includes((query.q as string).toLowerCase()),

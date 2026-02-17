@@ -2,6 +2,7 @@ import { Asset } from "@/types/asset";
 import { apple } from "@react-native-ai/apple";
 import { streamText } from "ai";
 import { useState } from "react";
+import { runOnJS } from "react-native-worklets";
 import {
   SYSTEM_PROMPT,
   appendStreamChunk,
@@ -40,11 +41,21 @@ export function useAIModel() {
     string | undefined
   >();
 
+  // TODO: test performance with worklet
   const generateNote = async (
     modelKey: string | undefined,
     prompt: string,
     photos?: Asset[],
   ) => {
+    runOnJS(_generateNote)(modelKey, prompt, photos);
+  };
+
+  const _generateNote = async (
+    modelKey: string | undefined,
+    prompt: string,
+    photos?: Asset[],
+  ) => {
+    "worklet";
     resetStreamingState();
     setOutputText("");
     setGeneratedModelKey(undefined);

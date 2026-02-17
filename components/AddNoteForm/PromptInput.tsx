@@ -7,17 +7,16 @@ import {
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useNoteForm } from "@/store/note-form-store";
 import { useNoteStore } from "@/store/note-store";
-import { Fragment, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import {
   Button,
   ScrollView,
   StyleSheet,
-  useColorScheme,
   useWindowDimensions,
   View,
 } from "react-native";
-import { useMarkdown, useMarkdownHookOptions } from "react-native-marked";
 import { useShallow } from "zustand/react/shallow";
+import CustomMarkdown from "../CustomMarkdown";
 import { ThemedPressable, ThemedText, ThemedTextInput } from "../Themed";
 import Modal from "../ui/Modal";
 import ProgressBar from "../ui/ProgressBar";
@@ -150,7 +149,7 @@ export default function PromptInput() {
                     {outputStreamText}
                   </ThemedText>
                 ) : (
-                  <Markdown value={outputText} />
+                  <CustomMarkdown value={outputText} />
                 )}
               </ScrollView>
               <View
@@ -228,21 +227,6 @@ export default function PromptInput() {
         title="Remove all models"
       />
     </View>
-  );
-}
-
-function Markdown({ value }: { value: string }) {
-  const colorScheme = useColorScheme();
-  const options: useMarkdownHookOptions = {
-    colorScheme,
-  };
-  const elements = useMarkdown(value, options);
-  return (
-    <>
-      {elements.map((element, index) => {
-        return <Fragment key={`demo_${index}`}>{element}</Fragment>;
-      })}
-    </>
   );
 }
 

@@ -9,11 +9,18 @@ export type LlamaVisionConfig = {
 };
 
 const LLAMA_RUNTIME_CONFIG = {
+  // device: {
+  //   modelId: "noctrex/LightOnOCR-2-1B-GGUF/LightOnOCR-2-1B-BF16.gguf",
+  //   projectorModelId: "noctrex/LightOnOCR-2-1B-GGUF/mmproj-BF16.gguf",
+  //   fileName: "LightOnOCR-2-1B-BF16.gguf",
+  //   projectorFileName: "mmproj-BF16.gguf",
+  // },
   device: {
-    modelId: "noctrex/LightOnOCR-2-1B-GGUF/LightOnOCR-2-1B-BF16.gguf",
-    projectorModelId: "noctrex/LightOnOCR-2-1B-GGUF/mmproj-BF16.gguf",
-    fileName: "LightOnOCR-2-1B-BF16.gguf",
-    projectorFileName: "mmproj-BF16.gguf",
+    modelId: "lmstudio-community/gemma-3-4b-it-GGUF/gemma-3-4b-it-Q3_K_L.gguf",
+    projectorModelId:
+      "lmstudio-community/gemma-3-4b-it-GGUF/mmproj-model-f16.gguf",
+    fileName: "gemma-3-4b-it-Q3_K_L.gguf",
+    projectorFileName: "mmproj-model-f16.gguf",
   },
   simulator: {
     modelId: "lmstudio-community/gemma-3-4b-it-GGUF/gemma-3-4b-it-Q3_K_L.gguf",

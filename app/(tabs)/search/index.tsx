@@ -4,9 +4,9 @@ import { useThemeColor } from "@/hooks/use-theme-color";
 import { useNoteStore } from "@/store/note-store";
 import { Note } from "@/types/note";
 import { FlashList } from "@shopify/flash-list";
-import { useLocalSearchParams } from "expo-router";
+import { Link, useLocalSearchParams } from "expo-router";
 import { useMemo } from "react";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { useShallow } from "zustand/react/shallow";
 
 export default function SearchIndex() {
@@ -35,38 +35,42 @@ export default function SearchIndex() {
     const isLast = index === notes.length - 1;
 
     return (
-      <View
-        key={item.id}
-        style={{
-          marginHorizontal: theme.space16,
-          paddingVertical: theme.space4,
-        }}
-      >
-        <View
+      <Link href={`/note/${item.id}`} asChild>
+        <Pressable
+          key={item.id}
           style={{
-            borderBottomWidth: isLast ? 0 : 1,
-            paddingBottom: theme.space8,
-            borderColor: "grey",
-            gap: theme.space4,
+            marginHorizontal: theme.space16,
+            paddingVertical: theme.space4,
           }}
         >
-          <View style={styles.titleContainer}>
-            {item.emoji && (
-              <ThemedText fontSize={theme.fontSize24}>{item.emoji}</ThemedText>
-            )}
-            <ThemedText fontSize={theme.fontSize18} fontWeight={600}>
-              {item.title}
+          <View
+            style={{
+              borderBottomWidth: isLast ? 0 : 1,
+              paddingBottom: theme.space8,
+              borderColor: "grey",
+              gap: theme.space4,
+            }}
+          >
+            <View style={styles.titleContainer}>
+              {item.emoji && (
+                <ThemedText fontSize={theme.fontSize24}>
+                  {item.emoji}
+                </ThemedText>
+              )}
+              <ThemedText fontSize={theme.fontSize18} fontWeight={600}>
+                {item.title}
+              </ThemedText>
+            </View>
+            <ThemedText fontSize={theme.fontSize16} style={{ color: secText }}>
+              {new Intl.DateTimeFormat("en-US", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+              }).format(item.createdAt)}
             </ThemedText>
           </View>
-          <ThemedText fontSize={theme.fontSize16} style={{ color: secText }}>
-            {new Intl.DateTimeFormat("en-US", {
-              year: "numeric",
-              month: "2-digit",
-              day: "2-digit",
-            }).format(item.createdAt)}
-          </ThemedText>
-        </View>
-      </View>
+        </Pressable>
+      </Link>
     );
   };
 

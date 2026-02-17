@@ -23,15 +23,14 @@ export default function HomeFeatureSection({
 }: HomeFeatureSectionProps) {
   const secondaryTextColor = useThemeColor("textSecondary");
   const borderColor = useThemeColor("border");
-  const cardColor = useThemeColor("backgroundSecondary");
   const tertiaryColor = useThemeColor("backgroundTertiary");
+  const cardColor = useThemeColor("backgroundSecondary");
   const accentColor = useThemeColor("iconDefault");
 
   return (
     <Animated.View
       entering={FadeInDown.delay(120).duration(350)}
-      layout={LinearTransition.damping(16)}
-      style={[styles.sectionCard, { borderColor, backgroundColor: cardColor }]}
+      style={styles.sectionCard}
     >
       <ThemedText fontSize={theme.fontSize20} fontWeight="bold">
         What you can do
@@ -44,7 +43,7 @@ export default function HomeFeatureSection({
           return (
             <Animated.View
               key={feature.key}
-              layout={LinearTransition.damping(16)}
+              layout={LinearTransition.duration(150)}
               style={[
                 styles.featureCard,
                 {
@@ -111,13 +110,9 @@ export default function HomeFeatureSection({
 
 const styles = StyleSheet.create({
   sectionCard: {
-    borderWidth: 1,
-    borderRadius: theme.borderRadius20,
-    padding: theme.space16,
     gap: theme.space12,
   },
   featureCard: {
-    borderWidth: 1,
     borderRadius: theme.borderRadius12,
     overflow: "hidden",
   },

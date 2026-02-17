@@ -21,18 +21,10 @@ export default function HomeHeroCard({
   onSearchNotes,
 }: HomeHeroCardProps) {
   const secondaryTextColor = useThemeColor("textSecondary");
-  const borderColor = useThemeColor("border");
-  const cardColor = useThemeColor("backgroundSecondary");
-
   return (
-    <View
-      style={[styles.heroCard, { borderColor, backgroundColor: cardColor }]}
-    >
-      <ThemedText fontFamily="mono" fontSize={theme.fontSize18}>
+    <View style={styles.heroCard}>
+      <ThemedText fontFamily="mono" fontSize={theme.fontSize34}>
         TURBO NOTES
-      </ThemedText>
-      <ThemedText fontSize={theme.fontSize34} fontWeight="bold">
-        Your AI note assistant.
       </ThemedText>
       <ThemedText
         fontSize={theme.fontSize16}
@@ -42,7 +34,7 @@ export default function HomeHeroCard({
         searchable in one place.
       </ThemedText>
       <ThemedText
-        fontSize={theme.fontSize14}
+        fontSize={theme.fontSize16}
         style={{ color: secondaryTextColor, lineHeight: 20 }}
       >
         Privacy first: AI runs on-device, with no cloud processing and no
@@ -75,9 +67,6 @@ export default function HomeHeroCard({
 
 const styles = StyleSheet.create({
   heroCard: {
-    borderWidth: 1,
-    borderRadius: theme.borderRadius20,
-    padding: theme.space16,
     gap: theme.space12,
   },
   statRow: {

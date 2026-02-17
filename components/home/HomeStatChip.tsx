@@ -10,10 +10,10 @@ type HomeStatChipProps = {
 
 export default function HomeStatChip({ label, value }: HomeStatChipProps) {
   const accentColor = useThemeColor("iconDefault");
-  const tertiaryColor = useThemeColor("backgroundTertiary");
+  const cardColor = useThemeColor("backgroundSecondary");
 
   return (
-    <View style={[styles.container, { backgroundColor: tertiaryColor }]}>
+    <View style={[styles.container, { backgroundColor: cardColor }]}>
       <ThemedText fontSize={theme.fontSize12} style={{ opacity: 0.7 }}>
         {label}
       </ThemedText>

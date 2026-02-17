@@ -3,10 +3,9 @@ import { theme } from "@/constants/theme";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useNoteStore } from "@/store/note-store";
 import { Note } from "@/types/note";
-import { FlashList } from "@shopify/flash-list";
 import { Link, useLocalSearchParams } from "expo-router";
 import { useMemo } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { FlatList, Pressable, StyleSheet, View } from "react-native";
 import { useShallow } from "zustand/react/shallow";
 
 export default function SearchIndex() {
@@ -75,11 +74,14 @@ export default function SearchIndex() {
   };
 
   return (
-    <FlashList
+    //TODO: Change to FlashList if performance is needed in the future
+    // Current Bug with FlashList: when a new note is added, the list scrolls to top, but the list size bugs out
+    <FlatList
       style={{ flex: 1 }}
       data={notes}
       keyExtractor={(item) => item.id}
       renderItem={renderItem}
+      contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={[
         styles.listContainer,
         {

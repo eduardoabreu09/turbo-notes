@@ -23,6 +23,7 @@ export default function NoteDetails() {
       <Stack.Screen
         options={{
           title: `${note?.title || "Note details"}`,
+          headerBackButtonDisplayMode: "minimal",
           headerBackTitle: "Back",
         }}
       />

@@ -10,7 +10,7 @@ import {
   View,
   ViewStyle,
 } from "react-native";
-import { FadeInUp, FadeOutUp, useSharedValue } from "react-native-reanimated";
+import { FadeInUp, FadeOutUp } from "react-native-reanimated";
 import { IconSymbol } from "../icon-symbol";
 
 type IconName = ComponentProps<typeof IconSymbol>["name"];
@@ -80,7 +80,6 @@ type TriggerProps = {
 };
 
 function Trigger({ children }: TriggerProps) {
-  const opacity = useSharedValue(1);
   const { isOpen, setIsOpen } = useContextMenu();
 
   const handlePress = () => {

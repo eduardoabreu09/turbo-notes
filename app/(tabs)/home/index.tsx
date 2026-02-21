@@ -53,7 +53,7 @@ export default function HomeScreen() {
           downloadedModelCount={downloadedModelCount}
           totalModelCount={models.length}
           onCreateNote={() => {
-            router.push("/(tabs)/add-note");
+            router.push("/(tabs)/home/add-note");
           }}
           onSearchNotes={() => {
             router.push("/(tabs)/search");

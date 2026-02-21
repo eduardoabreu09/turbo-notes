@@ -7,6 +7,7 @@ import {
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useNoteForm } from "@/store/note-form-store";
 import { useNoteStore } from "@/store/note-store";
+import { useRouter } from "expo-router";
 import { useEffect, useRef } from "react";
 import {
   Button,
@@ -53,6 +54,7 @@ export default function PromptInput() {
   const addNote = useNoteStore((state) => state.addNote);
   const scrollViewRef = useRef<ScrollView | null>(null);
   const scrollDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const route = useRouter();
 
   const borderColor = useThemeColor("border");
   const iconColor = useThemeColor("iconDefault");
@@ -205,6 +207,7 @@ export default function PromptInput() {
                         modelId: generatedModelKey,
                       });
                       bottomModalRef.current?.dismiss();
+                      route.dismiss();
                     }}
                   >
                     <ThemedText fontSize={theme.fontSize16} fontWeight={600}>

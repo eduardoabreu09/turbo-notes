@@ -37,6 +37,8 @@ const MAPPING = {
   plus: "add",
   play: "send",
   stop: "cancel",
+  "square.and.arrow.up": "ios-share",
+  trash: "delete",
 } as IconMapping;
 
 /**

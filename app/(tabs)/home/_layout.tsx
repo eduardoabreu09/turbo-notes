@@ -7,11 +7,16 @@ import { Platform } from "react-native";
 export default function Layout() {
   const tabBarBackgroundColor = useThemeColor("background");
 
-  // TODO: add name of the note in Header
   return (
-    <Stack>
+    <Stack screenOptions={{ animation: "simple_push" }}>
       <Stack.Screen
         name="index"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="add-note"
         options={{
           headerStyle: {
             backgroundColor: isLiquidGlassAvailable()
@@ -20,6 +25,7 @@ export default function Layout() {
           },
           headerLargeTitle: true,
           title: "Add Note",
+          headerBackButtonDisplayMode: "minimal",
           headerTitle: () =>
             Platform.OS === "android" ? <Title>Add Note</Title> : undefined,
         }}

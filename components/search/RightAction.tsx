@@ -1,5 +1,7 @@
 import { theme } from "@/constants/theme";
 import { useNoteStore } from "@/store/note-store";
+import { File, Paths } from "expo-file-system";
+import * as Sharing from "expo-sharing";
 import { ComponentProps } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import Animated, {
@@ -38,6 +40,7 @@ export function RightAction({
   noteId: string;
 }) {
   const deleteNote = useNoteStore((state) => state.removeNoteById);
+  const note = useNoteStore((state) => state.getNoteById(noteId));
   const styleAnimation = useAnimatedStyle(() => {
     return {
       opacity: withTiming(prog.value, { duration: 100 }),
@@ -58,6 +61,24 @@ export function RightAction({
       icon: "square.and.arrow.up",
       bgColor: theme.color.reactBlue.dark,
       label: "Share",
+      onPress: () => {
+        const noteContent = note?.content || "";
+        const noteFileTitle = note?.title || "Untitled Note";
+        const deleteIfExists = (file: File) => {
+          if (file.exists) {
+            file.delete();
+          }
+        };
+        try {
+          const file = new File(Paths.cache, `${noteFileTitle}.md`);
+          deleteIfExists(file);
+          file.create();
+          file.write(noteContent);
+          Sharing.shareAsync(file.uri);
+        } catch (error) {
+          console.error(error);
+        }
+      },
     },
   };
 

@@ -3,7 +3,7 @@ import { theme } from "@/constants/theme";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useRouter } from "expo-router";
-import { Platform } from "react-native";
+import { Platform, View } from "react-native";
 
 export default function Layout() {
   const router = useRouter();
@@ -11,38 +11,46 @@ export default function Layout() {
   const tabBarTintColor = useThemeColor("tabBarTint");
 
   return (
-    <Stack>
-      <Stack.Screen
-        name="index"
-        options={{
-          headerStyle: {
-            backgroundColor: isLiquidGlassAvailable()
-              ? "transparent"
-              : tabBarBackgroundColor,
-          },
-          headerLargeTitle: true,
-          title: "Search",
-          headerTitle: () =>
-            Platform.OS === "android" ? (
-              <ThemedText fontSize={theme.fontSize20} fontWeight="bold">
-                Search
-              </ThemedText>
-            ) : undefined,
-
-          headerSearchBarOptions: {
-            headerIconColor: tabBarTintColor,
-            tintColor: tabBarTintColor,
-            textColor: tabBarTintColor,
-            hintTextColor: tabBarTintColor,
-            placeholder: "Search notes",
-            onChangeText: (event) => {
-              router.setParams({
-                q: event.nativeEvent.text,
-              });
+    <View style={{ flex: 1, backgroundColor: tabBarBackgroundColor }}>
+      <Stack>
+        <Stack.Screen
+          name="index"
+          options={{
+            headerStyle: {
+              backgroundColor: isLiquidGlassAvailable()
+                ? "transparent"
+                : tabBarBackgroundColor,
             },
-          },
-        }}
-      />
-    </Stack>
+            headerLargeTitle: true,
+            title: "Search",
+            headerTitle: () =>
+              Platform.OS === "android" ? (
+                <ThemedText fontSize={theme.fontSize20} fontWeight="bold">
+                  Search
+                </ThemedText>
+              ) : undefined,
+
+            headerSearchBarOptions: {
+              headerIconColor: tabBarTintColor,
+              tintColor: tabBarTintColor,
+              textColor: tabBarTintColor,
+              hintTextColor: tabBarTintColor,
+              placeholder: "Search notes",
+              onChangeText: (event) => {
+                router.setParams({
+                  q: event.nativeEvent.text,
+                });
+              },
+            },
+          }}
+        />
+        <Stack.Screen
+          name="note/[id]"
+          options={{
+            headerBackButtonDisplayMode: "minimal",
+          }}
+        />
+      </Stack>
+    </View>
   );
 }

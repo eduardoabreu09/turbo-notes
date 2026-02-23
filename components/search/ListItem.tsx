@@ -70,7 +70,7 @@ export function ListItem({ item, isLast }: { item: Note; isLast?: boolean }) {
     >
       <AnimatedPressable
         onPress={() => {
-          router.navigate(`/note/${item.id}`);
+          router.navigate(`/(tabs)/search/note/${item.id}`);
         }}
         style={[
           bgStyle,

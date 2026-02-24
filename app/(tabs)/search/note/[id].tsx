@@ -1,32 +1,37 @@
 import NotePage from "@/components/note-id";
+import { ThemedText, ThemedView } from "@/components/Themed";
 import { theme } from "@/constants/theme";
-import { useThemeColor } from "@/hooks/use-theme-color";
 import { useNoteStore } from "@/store/note-store";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 export default function NoteDetails() {
-  const backgroundColor = useThemeColor("background");
-
   const { id } = useLocalSearchParams<{ id: string }>();
   const note = useNoteStore((state) => state.getNoteById(id));
 
   return (
-    <KeyboardAwareScrollView
-      contentInsetAdjustmentBehavior="automatic"
-      style={{ flex: 1, backgroundColor }}
-      contentContainerStyle={{
+    <ThemedView
+      style={{
+        flex: 1,
         paddingVertical: theme.space12,
         gap: theme.space12,
       }}
-      keyboardDismissMode="on-drag"
     >
       <Stack.Screen
         options={{
           title: `${note?.title || "Note details"}`,
         }}
       />
-      <NotePage note={note} />
-    </KeyboardAwareScrollView>
+      {note ? (
+        <NotePage note={note} />
+      ) : (
+        <ThemedText
+          style={{
+            paddingHorizontal: theme.space16,
+          }}
+        >
+          Note not found
+        </ThemedText>
+      )}
+    </ThemedView>
   );
 }

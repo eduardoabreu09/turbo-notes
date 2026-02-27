@@ -12,22 +12,15 @@ import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Platform, ScrollView } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { useShallow } from "zustand/react/shallow";
 
 export default function HomeScreen() {
   useInitModelCatalog();
 
   const router = useRouter();
   const backgroundColor = useThemeColor("background");
-
-  const { hasHydrated, noteCount } = useNoteStore(
-    useShallow((state) => ({
-      hasHydrated: state.hasHydrated,
-      noteCount: Object.keys(state.notes).length,
-    })),
-  );
+  const notes = useNoteStore((state) => state.notes);
   const { models } = useModelCatalogModels();
-  const noteCountLabel = hasHydrated ? String(noteCount) : "...";
+  const noteCountLabel = notes ? Object.keys(notes).length.toString() : "0";
 
   const downloadedModelCount = useMemo(
     () => models.filter((model) => model.isDownloaded).length,

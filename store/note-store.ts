@@ -6,12 +6,10 @@ import { createMMKVStorage } from "./mmkv";
 
 export type NoteState = {
   notes: Record<string, Note>;
-  hasHydrated: boolean;
 };
 
 export const initialNoteState: NoteState = {
   notes: {},
-  hasHydrated: false,
 };
 
 type NoteStore = NoteState & {
@@ -21,7 +19,6 @@ type NoteStore = NoteState & {
   removeNote: (note: Note) => boolean;
   removeNoteById: (id: string) => boolean;
   removeAllNotes: () => void;
-  setHasHydrated: (value: boolean) => void;
 };
 
 type PersistedNoteStoreState = Pick<NoteState, "notes">;
@@ -138,7 +135,6 @@ export const useNoteStore = create<NoteStore>()(
         return false;
       },
       removeAllNotes: () => set({ notes: {} }),
-      setHasHydrated: (value) => set({ hasHydrated: value }),
     }),
     {
       name: "note-storage",
@@ -161,9 +157,6 @@ export const useNoteStore = create<NoteStore>()(
           ...currentState,
           notes: normalizePersistedNotes(typed?.notes),
         };
-      },
-      onRehydrateStorage: () => (state) => {
-        state?.setHasHydrated(true);
       },
     },
   ),

@@ -103,6 +103,9 @@ export function ThemedView(props: ViewProps) {
 export function ThemedPressable(props: PressProps) {
   const { style, animated, backgroundColor, ...otherProps } = props;
   const defaultBackgroundColor = useThemeColor("background");
+  // Keep a single fallback state object to satisfy both RN core typings
+  // ({ pressed }) and Expo web-augmented typings ({ pressed, hovered }).
+  const defaultPressableState = { pressed: false, hovered: false };
 
   if (animated) {
     return (
@@ -110,7 +113,7 @@ export function ThemedPressable(props: PressProps) {
         style={[
           { backgroundColor },
           typeof style === "function"
-            ? style({ pressed: false, hovered: false })
+            ? style(defaultPressableState)
             : style,
         ]}
         {...otherProps}
@@ -123,7 +126,7 @@ export function ThemedPressable(props: PressProps) {
       style={[
         { backgroundColor: backgroundColor || defaultBackgroundColor },
         typeof style === "function"
-          ? style({ pressed: false, hovered: false })
+          ? style(defaultPressableState)
           : style,
       ]}
       {...otherProps}

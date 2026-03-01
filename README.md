@@ -48,3 +48,13 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+## Quality checks
+
+Before pushing code, run:
+
+```bash
+npm run check
+```
+
+This runs lint, TypeScript typecheck, and Jest unit tests. The same command is executed in CI, and pull requests should only be merged after the `quality` check passes.

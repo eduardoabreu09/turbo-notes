@@ -20,6 +20,10 @@ function formatDateSegment(value: Date): string {
   return `${year}${month}${day}-${hours}${minutes}${seconds}`;
 }
 
+function isValidDate(value: Date): boolean {
+  return !Number.isNaN(value.getTime());
+}
+
 export function sanitizeFileName(title: string): string {
   const normalized = title
     .trim()
@@ -33,7 +37,8 @@ export function sanitizeFileName(title: string): string {
 
 export function buildExportFileName(title: string, createdAt?: Date): string {
   const safeTitle = sanitizeFileName(title);
-  const stamp = formatDateSegment(createdAt ?? new Date());
+  const date = createdAt && isValidDate(createdAt) ? createdAt : new Date();
+  const stamp = formatDateSegment(date);
   return `${safeTitle}-${stamp}.md`;
 }
 

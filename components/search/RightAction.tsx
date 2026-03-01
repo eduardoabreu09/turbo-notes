@@ -1,9 +1,9 @@
 import { theme } from "@/constants/theme";
 import { useNoteStore } from "@/store/note-store";
-import { File, Paths } from "expo-file-system";
+import { exportNoteMarkdown } from "@/utils/export-note-md";
 import * as Sharing from "expo-sharing";
 import { ComponentProps } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Alert, Pressable, StyleSheet, View } from "react-native";
 import Animated, {
   interpolate,
   SharedValue,
@@ -61,22 +61,27 @@ export function RightAction({
       icon: "square.and.arrow.up",
       bgColor: theme.color.reactBlue.dark,
       label: "Share",
-      onPress: () => {
-        const noteContent = note?.content || "";
-        const noteFileTitle = note?.title || "Untitled Note";
-        const deleteIfExists = (file: File) => {
-          if (file.exists) {
-            file.delete();
-          }
-        };
+      onPress: async () => {
+        if (!note) {
+          return;
+        }
+        const isShareAvailable = await Sharing.isAvailableAsync();
         try {
-          const file = new File(Paths.cache, `${noteFileTitle}.md`);
-          deleteIfExists(file);
-          file.create();
-          file.write(noteContent);
-          Sharing.shareAsync(file.uri);
+          const file = await exportNoteMarkdown({
+            title: note.title,
+            content: note.content,
+            createdAt: note.createdAt,
+          });
+          if (!isShareAvailable) {
+            Alert.alert(
+              "Sharing not available",
+              "Sharing is not supported on this platform.",
+            );
+            return;
+          }
+          await Sharing.shareAsync(file.uri);
         } catch (error) {
-          console.error(error);
+          console.error("Failed to share note:", error);
         }
       },
     },
